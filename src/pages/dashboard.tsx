@@ -267,7 +267,7 @@ const DashboardPage: React.FC = () => {
           <PlaceholderTitle>App Block Claimed</PlaceholderTitle>
           <Divider />
           <PlaceholderText>
-            This block is now part of Renaissance City. What you build here 
+            This app block is now part of Renaissance City. What you build here 
             will connect to others — together, we&apos;re rebuilding Detroit, 
             one block at a time.
           </PlaceholderText>
