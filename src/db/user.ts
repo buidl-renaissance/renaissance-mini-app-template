@@ -9,6 +9,8 @@ export interface User {
   username?: string | null;
   displayName?: string | null;
   pfpUrl?: string | null;
+  publicAddress?: string | null;
+  peopleUserId?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +29,7 @@ export interface FarcasterUserData {
   username?: string;
   displayName?: string;
   pfpUrl?: string;
+  publicAddress?: string;
 }
 
 export async function getUserByFid(fid: string): Promise<User | null> {
@@ -45,6 +48,8 @@ export async function getUserByFid(fid: string): Promise<User | null> {
     username: row.username,
     displayName: row.displayName,
     pfpUrl: row.pfpUrl,
+    publicAddress: row.publicAddress,
+    peopleUserId: row.peopleUserId,
     createdAt: row.createdAt || new Date(),
     updatedAt: row.updatedAt || new Date(),
   } as User;
@@ -66,6 +71,8 @@ export async function getUserById(userId: string): Promise<User | null> {
     username: row.username,
     displayName: row.displayName,
     pfpUrl: row.pfpUrl,
+    publicAddress: row.publicAddress,
+    peopleUserId: row.peopleUserId,
     createdAt: row.createdAt || new Date(),
     updatedAt: row.updatedAt || new Date(),
   } as User;
@@ -87,6 +94,8 @@ export async function getUserByUsername(username: string): Promise<User | null> 
     username: row.username,
     displayName: row.displayName,
     pfpUrl: row.pfpUrl,
+    publicAddress: row.publicAddress,
+    peopleUserId: row.peopleUserId,
     createdAt: row.createdAt || new Date(),
     updatedAt: row.updatedAt || new Date(),
   } as User;
@@ -137,6 +146,7 @@ export async function getOrCreateUserByFid(
     username: userData?.username || null,
     displayName: userData?.displayName || null,
     pfpUrl: userData?.pfpUrl || null,
+    publicAddress: userData?.publicAddress || null,
     createdAt: now,
     updatedAt: now,
   };
@@ -144,6 +154,53 @@ export async function getOrCreateUserByFid(
   await db.insert(users).values(newUser);
   
   return newUser as User;
+}
+
+export async function updateUserPeopleId(userId: string, peopleUserId: number): Promise<void> {
+  await db
+    .update(users)
+    .set({ peopleUserId, updatedAt: new Date() })
+    .where(eq(users.id, userId));
+}
+
+export async function updateUserPublicAddress(userId: string, publicAddress: string): Promise<void> {
+  await db
+    .update(users)
+    .set({ publicAddress, updatedAt: new Date() })
+    .where(eq(users.id, userId));
+}
+
+export interface UpdateUserData {
+  displayName?: string | null;
+  pfpUrl?: string | null;
+}
+
+export async function updateUser(userId: string, data: UpdateUserData): Promise<User | null> {
+  const existing = await getUserById(userId);
+  if (!existing) return null;
+
+  const updateData: {
+    displayName?: string | null;
+    pfpUrl?: string | null;
+    updatedAt: Date;
+  } = { updatedAt: new Date() };
+
+  if (data.displayName !== undefined) {
+    updateData.displayName = data.displayName;
+  }
+  if (data.pfpUrl !== undefined) {
+    updateData.pfpUrl = data.pfpUrl;
+  }
+
+  await db
+    .update(users)
+    .set(updateData)
+    .where(eq(users.id, userId));
+
+  return {
+    ...existing,
+    ...updateData,
+  } as User;
 }
 
 export async function upsertFarcasterAccount(

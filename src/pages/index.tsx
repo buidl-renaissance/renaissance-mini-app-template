@@ -86,7 +86,7 @@ const HomePage: React.FC = () => {
     callReady();
   }, []);
 
-  // Show splash screen while loading or for authenticated users
+  // Show splash screen - handles redirects to /dashboard or /auth
   return <Splash user={user} isLoading={isLoading} appName={APP_NAME} />;
 };
 

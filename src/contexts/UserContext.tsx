@@ -1,10 +1,14 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User } from '@/db/user';
+import { clearStoredWallet } from '@/lib/embeddedWallet';
 
 interface UserContextType {
   user: User | null;
   isLoading: boolean;
   error: string | null;
+  setUser: (user: User | null) => void;
+  signOut: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 interface SDKUser {
@@ -117,6 +121,33 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     storeUser(user);
   }, [user]);
+
+  // Sign out function - clears user, session, and embedded wallet
+  const signOut = useCallback(() => {
+    console.log('🚪 Signing out user');
+    setUser(null);
+    storeUser(null);
+    clearStoredWallet();
+    // Clear session cookie by making a request to signout endpoint or setting expired cookie
+    document.cookie = 'user_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  }, []);
+
+  // Refresh user function - fetches latest user data from API
+  const refreshUser = useCallback(async () => {
+    try {
+      console.log('🔄 Refreshing user data');
+      const response = await fetch('/api/user/me');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.user) {
+          console.log('✅ User refreshed:', data.user);
+          setUser(data.user);
+        }
+      }
+    } catch (err) {
+      console.error('❌ Error refreshing user:', err);
+    }
+  }, []);
 
   // Function to authenticate user from SDK context
   const authenticateFromSDK = async (sdkUser: SDKUser) => {
@@ -450,7 +481,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, isLoading, error }}>
+    <UserContext.Provider value={{ user, isLoading, error, setUser, signOut, refreshUser }}>
       {children}
     </UserContext.Provider>
   );

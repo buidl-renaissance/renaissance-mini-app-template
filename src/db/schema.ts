@@ -8,6 +8,8 @@ export const users = sqliteTable('users', {
   username: text('username'),
   displayName: text('displayName'),
   pfpUrl: text('pfpUrl'),
+  publicAddress: text('publicAddress'),
+  peopleUserId: integer('peopleUserId'),
   createdAt: integer('createdAt', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
   updatedAt: integer('updatedAt', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
 });

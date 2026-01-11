@@ -13,9 +13,12 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.958.0",
     "@farcaster/miniapp-sdk": "^0.2.1",
     "@libsql/client": "^0.15.15",
     "drizzle-orm": "^0.45.1",
+    "sharp": "^0.34.5",
+    "ethers": "^6.16.0",
     "next": "15.5.9",
     "next-seo": "^6.6.0",
     "react": "^19.2.3",

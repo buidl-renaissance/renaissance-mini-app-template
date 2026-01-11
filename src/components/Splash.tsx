@@ -8,7 +8,6 @@ interface SplashProps {
   isLoading?: boolean;
   redirectDelay?: number;
   appName?: string;
-  onCreateAccount?: () => void;
 }
 
 const fadeIn = keyframes`
@@ -264,56 +263,6 @@ const SubText = styled.p<{ $animate?: boolean }>`
   font-style: italic;
 `;
 
-const CreateAccountButton = styled.button`
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.15rem;
-  font-weight: 600;
-  padding: 1rem 2.5rem;
-  background: linear-gradient(
-    135deg,
-    ${({ theme }) => theme.accent} 0%,
-    ${({ theme }) => theme.accentGold} 100%
-  );
-  color: white;
-  border: none;
-  border-radius: ${({ theme }) => theme.borderRadius};
-  cursor: pointer;
-  box-shadow: 
-    0 4px 16px ${({ theme }) => theme.shadow},
-    0 0 0 1px ${({ theme }) => theme.accentGold}40;
-  transition: all 0.3s ease;
-  animation: ${fadeIn} 0.6s ease-out;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-      0 8px 24px ${({ theme }) => theme.shadow},
-      0 0 0 1px ${({ theme }) => theme.accentGold}60;
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-`;
-
-const NoAccountSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  animation: ${fadeIn} 0.6s ease-out 0.3s both;
-  text-align: center;
-  max-width: 320px;
-`;
-
-const NoAccountText = styled.p`
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1.05rem;
-  color: ${({ theme }) => theme.textSecondary};
-  line-height: 1.6;
-  margin: 0;
-`;
-
 const ProgressContainer = styled.div`
   width: 180px;
   height: 3px;
@@ -342,22 +291,28 @@ const Splash: React.FC<SplashProps> = ({
   user, 
   isLoading = false, 
   redirectDelay = 2500,
-  appName = 'Renaissance City',
-  onCreateAccount
+  appName = 'Renaissance City'
 }) => {
   const router = useRouter();
   const [imageError, setImageError] = useState(false);
   const [shouldRedirect, setShouldRedirect] = useState(false);
 
-  // Only start redirect timer when we have a user (authenticated)
+  // Redirect authenticated users to dashboard, unauthenticated to auth
   useEffect(() => {
-    if (user && !isLoading) {
-      setShouldRedirect(true);
-      const timer = setTimeout(() => {
-        router.replace('/dashboard');
-      }, redirectDelay);
-
-      return () => clearTimeout(timer);
+    if (!isLoading) {
+      if (user) {
+        setShouldRedirect(true);
+        const timer = setTimeout(() => {
+          router.replace('/dashboard');
+        }, redirectDelay);
+        return () => clearTimeout(timer);
+      } else {
+        // Redirect to auth page after a brief delay
+        const timer = setTimeout(() => {
+          router.replace('/auth');
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
     }
   }, [router, redirectDelay, user, isLoading]);
 
@@ -370,18 +325,6 @@ const Splash: React.FC<SplashProps> = ({
         .toUpperCase()
         .slice(0, 2)
     : '';
-
-  // Show create account when not loading and no user
-  const showCreateAccount = !isLoading && !user;
-
-  const handleCreateAccount = () => {
-    if (onCreateAccount) {
-      onCreateAccount();
-    } else {
-      // Default behavior: open Renaissance signup
-      window.open('https://renaissance.city/signup', '_blank');
-    }
-  };
 
   return (
     <SplashContainer>
@@ -408,21 +351,11 @@ const Splash: React.FC<SplashProps> = ({
             <WelcomeText>Welcome, {displayName}</WelcomeText>
             <SubText $animate>Let&apos;s build...</SubText>
           </>
-        ) : showCreateAccount ? (
-          <NoAccountSection>
-            <WelcomeText>Join the Renaissance</WelcomeText>
-            <NoAccountText>
-              Create your Renaissance account to claim your block and start building.
-            </NoAccountText>
-            <CreateAccountButton onClick={handleCreateAccount}>
-              Create Renaissance Account
-            </CreateAccountButton>
-          </NoAccountSection>
         ) : (
           <>
             <LoadingSpinner />
             <WelcomeText>Welcome to {appName}</WelcomeText>
-            <SubText $animate>Verifying your identity...</SubText>
+            <SubText $animate>{isLoading ? 'Verifying your identity...' : 'Preparing your experience...'}</SubText>
           </>
         )}
       </ProfileSection>

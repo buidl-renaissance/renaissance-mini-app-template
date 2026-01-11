@@ -1,0 +1,111 @@
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import sharp from "sharp";
+import { randomUUID } from "crypto";
+
+const REQUIRED_WIDTH = 200;
+const REQUIRED_HEIGHT = 200;
+
+// DigitalOcean Spaces configuration from environment variables
+const DO_SPACES_ENDPOINT = process.env.DO_SPACES_ENDPOINT;
+const DO_SPACES_ACCESS_KEY_ID = process.env.DO_SPACES_ACCESS_KEY_ID;
+const DO_SPACES_SECRET_ACCESS_KEY = process.env.DO_SPACES_SECRET_ACCESS_KEY;
+const DO_SPACES_BUCKET_NAME = process.env.DO_SPACES_BUCKET_NAME;
+const DO_SPACES_REGION = process.env.DO_SPACES_REGION || "nyc3";
+const DO_SPACES_CDN_URL = process.env.DO_SPACES_CDN_URL; // Optional CDN URL
+
+// Initialize S3 client for DigitalOcean Spaces
+const s3Client = new S3Client({
+  endpoint: DO_SPACES_ENDPOINT,
+  region: DO_SPACES_REGION,
+  credentials: {
+    accessKeyId: DO_SPACES_ACCESS_KEY_ID || "",
+    secretAccessKey: DO_SPACES_SECRET_ACCESS_KEY || "",
+  },
+  forcePathStyle: false, // DigitalOcean Spaces uses virtual-hosted-style
+});
+
+/**
+ * Validates, processes, and uploads a base64 encoded image to DigitalOcean Spaces.
+ * The image will be resized to exactly 200x200px before upload.
+ * 
+ * @param base64Image - Base64 encoded image string (with or without data URI prefix)
+ * @param userId - Optional user ID to include in the filename
+ * @returns Promise<string> - Public URL of the uploaded image
+ * @throws Error if the image cannot be processed or uploaded
+ */
+export async function uploadProfileImageToDO(
+  base64Image: string,
+  userId?: string
+): Promise<string> {
+  if (!base64Image) {
+    throw new Error("Profile image is required");
+  }
+
+  // Validate environment variables
+  if (!DO_SPACES_ENDPOINT || !DO_SPACES_ACCESS_KEY_ID || !DO_SPACES_SECRET_ACCESS_KEY || !DO_SPACES_BUCKET_NAME) {
+    throw new Error(
+      "DigitalOcean Spaces configuration is missing. Please set DO_SPACES_ENDPOINT, DO_SPACES_ACCESS_KEY_ID, DO_SPACES_SECRET_ACCESS_KEY, and DO_SPACES_BUCKET_NAME environment variables."
+    );
+  }
+
+  // Remove data URI prefix if present (e.g., "data:image/png;base64,")
+  const base64Data = base64Image.includes(",")
+    ? base64Image.split(",")[1]
+    : base64Image;
+
+  // Decode base64 to buffer
+  let imageBuffer: Buffer;
+  try {
+    imageBuffer = Buffer.from(base64Data, "base64");
+  } catch {
+    throw new Error("Invalid base64 encoded image");
+  }
+
+  // Process image with sharp to ensure 200x200px
+  let processedImage: Buffer;
+  try {
+    processedImage = await sharp(imageBuffer)
+      .resize(REQUIRED_WIDTH, REQUIRED_HEIGHT, {
+        fit: "cover",
+        position: "center",
+      })
+      .png()
+      .toBuffer();
+  } catch (error) {
+    throw new Error(
+      `Failed to process image: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
+  }
+
+  // Generate unique filename
+  const filename = userId
+    ? `profile-pictures/${userId}-${randomUUID()}.png`
+    : `profile-pictures/${randomUUID()}.png`;
+
+  // Upload to DigitalOcean Spaces
+  try {
+    const command = new PutObjectCommand({
+      Bucket: DO_SPACES_BUCKET_NAME,
+      Key: filename,
+      Body: processedImage,
+      ContentType: "image/png",
+      ACL: "public-read", // Make the image publicly accessible
+    });
+
+    await s3Client.send(command);
+
+    // Return the public URL
+    if (DO_SPACES_CDN_URL) {
+      // Use CDN URL if provided
+      return `${DO_SPACES_CDN_URL}/${filename}`;
+    } else {
+      // Use the Spaces endpoint URL
+      const endpointUrl = DO_SPACES_ENDPOINT.replace(/^https?:\/\//, "");
+      return `https://${DO_SPACES_BUCKET_NAME}.${endpointUrl}/${filename}`;
+    }
+  } catch (error) {
+    throw new Error(
+      `Failed to upload image: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
+  }
+}

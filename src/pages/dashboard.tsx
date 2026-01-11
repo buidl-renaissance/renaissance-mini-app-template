@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import Head from "next/head";
 import styled, { keyframes } from "styled-components";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
 import { Loading } from "@/components/Loading";
 
@@ -56,7 +57,7 @@ const UserSection = styled.div`
   animation: ${fadeIn} 0.5s ease-out;
 `;
 
-const ProfileImageContainer = styled.div`
+const ProfileImageContainer = styled(Link)`
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -68,6 +69,14 @@ const ProfileImageContainer = styled.div`
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 2px 8px ${({ theme }) => theme.shadow};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+
+  &:hover {
+    transform: scale(1.05);
+    border-color: ${({ theme }) => theme.accent};
+  }
 `;
 
 const ProfileImage = styled.img`
@@ -186,10 +195,10 @@ const DashboardPage: React.FC = () => {
   const { user, isLoading: isUserLoading } = useUser();
   const [imageError, setImageError] = React.useState(false);
 
-  // Redirect to home if not authenticated
+  // Redirect to auth if not authenticated
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.push('/');
+      router.push('/auth');
     }
   }, [isUserLoading, user, router]);
 
@@ -242,7 +251,7 @@ const DashboardPage: React.FC = () => {
       <Main>
         <DashboardHeader>
           <UserSection>
-            <ProfileImageContainer>
+            <ProfileImageContainer href="/account" title="Account Settings">
               {user.pfpUrl && !imageError ? (
                 <ProfileImage
                   src={user.pfpUrl}
@@ -264,10 +273,10 @@ const DashboardPage: React.FC = () => {
         </DashboardHeader>
 
         <ContentSection>
-          <PlaceholderTitle>App Block Claimed</PlaceholderTitle>
+          <PlaceholderTitle>Block Claimed</PlaceholderTitle>
           <Divider />
           <PlaceholderText>
-            This app block is now part of Renaissance City. What you build here 
+            This block is now part of Renaissance City. What you build here 
             will connect to others — together, we&apos;re rebuilding Detroit, 
             one block at a time.
           </PlaceholderText>
