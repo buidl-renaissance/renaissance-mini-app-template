@@ -27,21 +27,20 @@ const Container = styled.div`
 
 const Header = styled.header`
   width: 100%;
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: ${({ theme }) => theme.surface};
   border-bottom: 1px solid ${({ theme }) => theme.border};
-  box-shadow: 0 2px 8px ${({ theme }) => theme.shadow};
 `;
 
 const BackButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.375rem;
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: ${({ theme }) => theme.textSecondary};
   background: none;
   border: none;
@@ -53,21 +52,21 @@ const BackButton = styled.button`
   }
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
 `;
 
 const Title = styled.h1`
   font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: ${({ theme }) => theme.text};
   margin: 0;
 `;
 
 const Spacer = styled.div`
-  width: 80px;
+  width: 60px;
 `;
 
 const Main = styled.main`
@@ -75,61 +74,41 @@ const Main = styled.main`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem 1.5rem;
-  animation: ${fadeIn} 0.5s ease-out;
+  padding: 1.5rem 1rem;
+  animation: ${fadeIn} 0.4s ease-out;
 `;
 
 const FormCard = styled.div`
   width: 100%;
-  max-width: 480px;
+  max-width: 400px;
   background: ${({ theme }) => theme.surface};
   border-radius: ${({ theme }) => theme.borderRadius};
   border: 1px solid ${({ theme }) => theme.border};
-  box-shadow: 0 4px 20px ${({ theme }) => theme.shadow};
+  box-shadow: 0 2px 12px ${({ theme }) => theme.shadow};
   overflow: hidden;
 `;
 
-const FormSection = styled.div`
-  padding: 2rem;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-const SectionTitle = styled.h2`
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  margin: 0 0 1.5rem 0;
-`;
-
-const ProfilePictureContainer = styled.div`
+const ProfileSection = styled.div`
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
 `;
 
 const AvatarWrapper = styled.div`
   position: relative;
-  width: 120px;
-  height: 120px;
 `;
 
 const Avatar = styled.div`
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid ${({ theme }) => theme.accentGold};
+  border: 2px solid ${({ theme }) => theme.accentGold};
   background: ${({ theme }) => theme.backgroundAlt};
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px ${({ theme }) => theme.shadow};
 `;
 
 const AvatarImage = styled.img`
@@ -150,7 +129,7 @@ const DefaultAvatar = styled.div`
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 600;
   font-family: 'Cormorant Garamond', Georgia, serif;
 `;
@@ -159,8 +138,8 @@ const EditOverlay = styled.button`
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: ${({ theme }) => theme.accent};
   border: 2px solid ${({ theme }) => theme.surface};
@@ -170,7 +149,6 @@ const EditOverlay = styled.button`
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px ${({ theme }) => theme.shadow};
 
   &:hover {
     background: ${({ theme }) => theme.accentGold};
@@ -178,8 +156,8 @@ const EditOverlay = styled.button`
   }
 
   svg {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
   }
 `;
 
@@ -187,27 +165,8 @@ const HiddenInput = styled.input`
   display: none;
 `;
 
-const ImageActions = styled.div`
-  display: flex;
-  gap: 0.75rem;
-`;
-
-const SmallButton = styled.button<{ $variant?: 'danger' }>`
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.9rem;
-  color: ${({ theme, $variant }) => $variant === 'danger' ? '#c53030' : theme.textSecondary};
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: ${({ theme, $variant }) => $variant === 'danger' ? '#e53e3e' : theme.accent};
-  }
-`;
-
-const InputGroup = styled.div`
+const ProfileInfo = styled.div`
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -215,26 +174,26 @@ const InputGroup = styled.div`
 
 const Label = styled.label`
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: ${({ theme }) => theme.textSecondary};
   font-weight: 500;
 `;
 
-const Input = styled.input`
+const NameInput = styled.input`
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 0.625rem 0.75rem;
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 1rem;
   color: ${({ theme }) => theme.text};
   background: ${({ theme }) => theme.backgroundAlt};
   border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 8px;
+  border-radius: 6px;
   transition: all 0.2s ease;
 
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.accent};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.accent}20;
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.accent}20;
   }
 
   &::placeholder {
@@ -243,27 +202,45 @@ const Input = styled.input`
   }
 `;
 
-const HelpText = styled.span`
+const RemoveButton = styled.button`
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: ${({ theme }) => theme.textSecondary};
-  font-style: italic;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #c53030;
+    opacity: 1;
+  }
+`;
+
+const AvatarSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 const ButtonContainer = styled.div`
-  padding: 1.5rem 2rem;
+  padding: 1rem 1.5rem;
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   justify-content: flex-end;
   background: ${({ theme }) => theme.backgroundAlt};
+  border-top: 1px solid ${({ theme }) => theme.border};
 `;
 
 const Button = styled.button<{ $primary?: boolean }>`
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
   font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -273,11 +250,10 @@ const Button = styled.button<{ $primary?: boolean }>`
         background: linear-gradient(135deg, ${theme.accent} 0%, ${theme.accentGold} 100%);
         color: white;
         border: none;
-        box-shadow: 0 2px 8px ${theme.shadow};
 
         &:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px ${theme.shadow};
+          box-shadow: 0 2px 8px ${theme.shadow};
         }
       `
       : `
@@ -292,17 +268,17 @@ const Button = styled.button<{ $primary?: boolean }>`
       `}
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 `;
 
 const Message = styled.div<{ $type: 'success' | 'error' }>`
-  padding: 1rem;
-  margin: 0 2rem 1rem;
-  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 1rem 1.5rem 0;
+  border-radius: 6px;
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   animation: ${fadeIn} 0.3s ease-out;
 
   ${({ $type, theme }) =>
@@ -366,13 +342,11 @@ const AccountPage: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       setMessage({ type: 'error', text: 'Please select an image file' });
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setMessage({ type: 'error', text: 'Image must be less than 5MB' });
       return;
@@ -401,7 +375,6 @@ const AccountPage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    // Reset to original values
     setDisplayName(user.displayName || '');
     setPreviewUrl(user.pfpUrl || null);
     setNewImageBase64(null);
@@ -420,19 +393,16 @@ const AccountPage: React.FC = () => {
         profilePicture?: string | null;
       } = {};
 
-      // Only include displayName if it changed
       if (displayName !== (user.displayName || '')) {
         updatePayload.displayName = displayName || null;
       }
 
-      // Handle profile picture changes
       if (newImageBase64) {
         updatePayload.profilePicture = newImageBase64;
       } else if (removeImage) {
         updatePayload.profilePicture = null;
       }
 
-      // Don't make a request if nothing changed
       if (Object.keys(updatePayload).length === 0) {
         setMessage({ type: 'success', text: 'No changes to save' });
         setIsSaving(false);
@@ -453,7 +423,6 @@ const AccountPage: React.FC = () => {
         throw new Error(data.error || 'Failed to update profile');
       }
 
-      // Update local user state
       if (data.user) {
         setUser(data.user);
         setPreviewUrl(data.user.pfpUrl || null);
@@ -461,14 +430,12 @@ const AccountPage: React.FC = () => {
         setRemoveImage(false);
       }
 
-      setMessage({ type: 'success', text: 'Profile updated successfully' });
-      
-      // Refresh user data
+      setMessage({ type: 'success', text: 'Saved' });
       await refreshUser();
     } catch (error) {
       setMessage({
         type: 'error',
-        text: error instanceof Error ? error.message : 'Failed to update profile',
+        text: error instanceof Error ? error.message : 'Failed to save',
       });
     } finally {
       setIsSaving(false);
@@ -480,11 +447,13 @@ const AccountPage: React.FC = () => {
     newImageBase64 !== null ||
     removeImage;
 
+  const hasImage = previewUrl || user.pfpUrl;
+
   return (
     <Container>
       <Head>
-        <title>Account Settings | {APP_NAME}</title>
-        <meta name="description" content="Manage your account settings" />
+        <title>Account | {APP_NAME}</title>
+        <meta name="description" content="Manage your account" />
         <link rel="icon" href="/favicon.ico" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
@@ -506,9 +475,8 @@ const AccountPage: React.FC = () => {
             <Message $type={message.type}>{message.text}</Message>
           )}
 
-          <FormSection>
-            <SectionTitle>Profile Picture</SectionTitle>
-            <ProfilePictureContainer>
+          <ProfileSection>
+            <AvatarSection>
               <AvatarWrapper>
                 <Avatar>
                   {previewUrl && !imageError ? (
@@ -522,53 +490,42 @@ const AccountPage: React.FC = () => {
                   )}
                 </Avatar>
                 <EditOverlay onClick={() => fileInputRef.current?.click()}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 5v14M5 12h14" />
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
                 </EditOverlay>
               </AvatarWrapper>
-              <HiddenInput
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-              />
-              <ImageActions>
-                <SmallButton onClick={() => fileInputRef.current?.click()}>
-                  Upload new
-                </SmallButton>
-                {(previewUrl || user.pfpUrl) && (
-                  <SmallButton $variant="danger" onClick={handleRemoveImage}>
-                    Remove
-                  </SmallButton>
-                )}
-              </ImageActions>
-              <HelpText>Recommended: Square image, at least 200×200 pixels</HelpText>
-            </ProfilePictureContainer>
-          </FormSection>
-
-          <FormSection>
-            <SectionTitle>Display Name</SectionTitle>
-            <InputGroup>
-              <Label htmlFor="displayName">Name</Label>
-              <Input
+              {hasImage && !removeImage && (
+                <RemoveButton onClick={handleRemoveImage}>
+                  Remove photo
+                </RemoveButton>
+              )}
+            </AvatarSection>
+            <HiddenInput
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+            />
+            <ProfileInfo>
+              <Label htmlFor="displayName">Display name</Label>
+              <NameInput
                 id="displayName"
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Enter your display name"
+                placeholder="Enter your name"
                 maxLength={50}
               />
-              <HelpText>This is how your name will appear across Renaissance City</HelpText>
-            </InputGroup>
-          </FormSection>
+            </ProfileInfo>
+          </ProfileSection>
 
           <ButtonContainer>
             <Button onClick={handleCancel} disabled={isSaving || !hasChanges}>
               Cancel
             </Button>
             <Button $primary onClick={handleSave} disabled={isSaving || !hasChanges}>
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? 'Saving...' : 'Save'}
             </Button>
           </ButtonContainer>
         </FormCard>
