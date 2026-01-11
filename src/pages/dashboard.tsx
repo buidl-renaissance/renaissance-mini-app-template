@@ -255,7 +255,7 @@ const DashboardPage: React.FC = () => {
             </ProfileImageContainer>
             <WelcomeText>
               <Greeting>Welcome, {displayName}</Greeting>
-              <SubGreeting>Ready to explore the city?</SubGreeting>
+              <SubGreeting>What are we building today?</SubGreeting>
             </WelcomeText>
           </UserSection>
           <BrandMark>
@@ -264,12 +264,12 @@ const DashboardPage: React.FC = () => {
         </DashboardHeader>
 
         <ContentSection>
-          <PlaceholderTitle>Your Dashboard</PlaceholderTitle>
+          <PlaceholderTitle>Block Claimed</PlaceholderTitle>
           <Divider />
           <PlaceholderText>
-            Welcome to Renaissance City. This is your personal space to explore 
-            Detroit&apos;s digital renaissance. Replace this content with your 
-            app-specific features and functionality.
+            This block is now part of Renaissance City. What you build here 
+            will connect to others — together, we&apos;re rebuilding Detroit, 
+            one block at a time.
           </PlaceholderText>
         </ContentSection>
       </Main>

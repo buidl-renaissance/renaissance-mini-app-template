@@ -342,7 +342,7 @@ const Splash: React.FC<SplashProps> = ({
               )}
             </ProfileImageContainer>
             <WelcomeText>Welcome, {displayName}</WelcomeText>
-            <SubText>Entering the city...</SubText>
+            <SubText>Let&apos;s build...</SubText>
           </>
         ) : (
           <>
