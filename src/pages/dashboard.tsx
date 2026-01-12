@@ -20,58 +20,71 @@ const fadeIn = keyframes`
   }
 `;
 
+const scaleIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
 const Container = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background: ${({ theme }) => theme.background};
+  padding: 2rem 1.5rem;
 `;
 
 const Main = styled.main`
-  flex: 1;
   display: flex;
   flex-direction: column;
-`;
-
-const DashboardHeader = styled.div`
-  width: 100%;
-  padding: 1.25rem 1.5rem;
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  background: ${({ theme }) => theme.surface};
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-  box-shadow: 0 2px 8px ${({ theme }) => theme.shadow};
-  
-  @media (max-width: 768px) {
-    padding: 1rem;
-  }
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
 `;
 
+// User Section - Vertical Layout
 const UserSection = styled.div`
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 1rem;
-  animation: ${fadeIn} 0.5s ease-out;
+  margin-bottom: 2.5rem;
+  animation: ${scaleIn} 0.5s ease-out;
 `;
 
 const ProfileImageContainer = styled(Link)`
-  width: 52px;
-  height: 52px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid ${({ theme }) => theme.accentGold};
+  border: 3px solid ${({ theme }) => theme.accentGold};
   background: ${({ theme }) => theme.surface};
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px ${({ theme }) => theme.shadow};
+  box-shadow: 
+    0 8px 24px ${({ theme }) => theme.shadow},
+    inset 0 0 0 1px ${({ theme }) => theme.accent}22;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1px solid ${({ theme }) => theme.accentGold}40;
+  }
 
   &:hover {
     transform: scale(1.05);
@@ -97,85 +110,50 @@ const DefaultAvatar = styled.div`
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 1.2rem;
+  font-size: 2.5rem;
   font-weight: 600;
   font-family: 'Cormorant Garamond', Georgia, serif;
 `;
 
-const WelcomeText = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-`;
-
 const Greeting = styled.h1`
   font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 600;
   margin: 0;
   color: ${({ theme }) => theme.text};
   
   @media (max-width: 768px) {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
   }
 `;
 
-const SubGreeting = styled.p`
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.textSecondary};
-  margin: 0;
-  font-style: italic;
-`;
-
-const BrandMark = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  animation: ${fadeIn} 0.5s ease-out 0.2s both;
-`;
-
-const BrandName = styled.span`
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.accent};
-  letter-spacing: 0.05em;
-  
-  @media (max-width: 480px) {
-    display: none;
-  }
-`;
-
+// Block Content Section
 const ContentSection = styled.section`
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  text-align: center;
-  animation: ${fadeIn} 0.6s ease-out 0.3s both;
+  animation: ${fadeIn} 0.6s ease-out 0.2s both;
 `;
 
-const PlaceholderTitle = styled.h2`
+const BlockTitle = styled.h2`
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 2.5rem;
   font-weight: 600;
   color: ${({ theme }) => theme.text};
-  margin-bottom: 1rem;
+  margin: 0 0 0rem 0;
   
   @media (max-width: 768px) {
     font-size: 2rem;
   }
 `;
 
-const PlaceholderText = styled.p`
+const BlockText = styled.p`
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   color: ${({ theme }) => theme.textSecondary};
-  max-width: 520px;
+  max-width: 480px;
   line-height: 1.7;
+  margin: 0;
 `;
 
 const Divider = styled.div`
@@ -187,7 +165,65 @@ const Divider = styled.div`
     ${({ theme }) => theme.accentGold},
     transparent
   );
-  margin: 1.5rem 0;
+  margin: 0.5rem 0;
+`;
+
+const CreateButton = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, ${({ theme }) => theme.accent} 0%, ${({ theme }) => theme.accentGold} 150%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  text-decoration: none;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px ${({ theme }) => theme.accent}44;
+  margin-top: 1.5rem;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px ${({ theme }) => theme.accent}55;
+  }
+`;
+
+const SecondaryActions = styled.div`
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+`;
+
+const SecondaryLink = styled(Link)`
+  color: ${({ theme }) => theme.textSecondary};
+  text-decoration: none;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: ${({ theme }) => theme.accent};
+  }
+`;
+
+const BrandMark = styled.div`
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.accent};
+  letter-spacing: 0.05em;
+  animation: ${fadeIn} 0.5s ease-out 0.3s both;
+  
+  @media (max-width: 480px) {
+    position: static;
+    margin-bottom: 2rem;
+  }
 `;
 
 const DashboardPage: React.FC = () => {
@@ -248,38 +284,42 @@ const DashboardPage: React.FC = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
 
+      {/* <BrandMark>Renaissance City</BrandMark> */}
+
       <Main>
-        <DashboardHeader>
-          <UserSection>
-            <ProfileImageContainer href="/account" title="Account Settings">
-              {user.pfpUrl && !imageError ? (
-                <ProfileImage
-                  src={user.pfpUrl}
-                  alt={displayName}
-                  onError={() => setImageError(true)}
-                />
-              ) : (
-                <DefaultAvatar>{initials}</DefaultAvatar>
-              )}
-            </ProfileImageContainer>
-            <WelcomeText>
-              <Greeting>Welcome, {displayName}</Greeting>
-              <SubGreeting>What are we building today?</SubGreeting>
-            </WelcomeText>
-          </UserSection>
-          <BrandMark>
-            <BrandName>Renaissance City</BrandName>
-          </BrandMark>
-        </DashboardHeader>
+        <UserSection>
+          <ProfileImageContainer href="/account" title="Account Settings">
+            {user.pfpUrl && !imageError ? (
+              <ProfileImage
+                src={user.pfpUrl}
+                alt={displayName}
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <DefaultAvatar>{initials}</DefaultAvatar>
+            )}
+          </ProfileImageContainer>
+          <Greeting>Welcome, {displayName}</Greeting>
+        </UserSection>
 
         <ContentSection>
-          <PlaceholderTitle>Block Claimed</PlaceholderTitle>
+          <BlockTitle>Block Claimed</BlockTitle>
           <Divider />
-          <PlaceholderText>
+          <BlockText>
             This block is now part of Renaissance City. What you build here 
             will connect to others — together, we&apos;re rebuilding Detroit, 
             one block at a time.
-          </PlaceholderText>
+          </BlockText>
+          
+          <CreateButton href="/get-started">
+            🏗️ Create App Block
+          </CreateButton>
+
+          <SecondaryActions>
+            <SecondaryLink href="/account">
+              Account Settings
+            </SecondaryLink>
+          </SecondaryActions>
         </ContentSection>
       </Main>
     </Container>
