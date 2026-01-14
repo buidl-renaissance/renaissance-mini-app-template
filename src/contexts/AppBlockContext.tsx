@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { useUser } from './UserContext';
 
 // Types matching the schema
@@ -267,6 +267,7 @@ const AppBlockContext = createContext<AppBlockContextType | undefined>(undefined
 
 export const AppBlockProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useUser();
+  const userRef = useRef(user);
   const [appBlocks, setAppBlocks] = useState<AppBlock[]>([]);
   const [currentAppBlock, setCurrentAppBlock] = useState<AppBlockWithInstallations | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -279,6 +280,11 @@ export const AppBlockProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [registryEntries, setRegistryEntries] = useState<RegistryEntry[]>([]);
   const [registryLoading, setRegistryLoading] = useState(false);
   const [registryTotal, setRegistryTotal] = useState(0);
+  
+  // Keep userRef in sync
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   // Helper functions
   const parseScopes = useCallback((scopesJson: string): string[] => {
@@ -300,7 +306,7 @@ export const AppBlockProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Fetch all app blocks for current user
   const fetchAppBlocks = useCallback(async () => {
-    if (!user) return;
+    if (!userRef.current) return;
     
     setIsLoading(true);
     setError(null);
@@ -321,7 +327,8 @@ export const AppBlockProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   // Fetch a single app block with details
   const fetchAppBlock = useCallback(async (id: string): Promise<AppBlockWithInstallations | null> => {

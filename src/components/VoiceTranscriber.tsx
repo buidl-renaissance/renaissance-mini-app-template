@@ -6,12 +6,14 @@ interface VoiceTranscriberProps {
   onTranscriptReady?: (transcript: string) => void;
   buttonLabel?: string;
   placeholder?: string;
+  variant?: 'default' | 'circular';
 }
 
 const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
   onTranscriptReady,
   buttonLabel = "Answer with Voice",
   placeholder = "Your spoken answer will appear here...",
+  variant = "default",
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -153,10 +155,16 @@ const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
 
   return (
     <>
-      <VoiceButton onClick={handleStartClick} type="button">
-        <MicIcon>🎙️</MicIcon>
-        {buttonLabel}
-      </VoiceButton>
+      {variant === 'circular' ? (
+        <CircularButton onClick={handleStartClick} type="button">
+          <CircularMicIcon>🎙️</CircularMicIcon>
+        </CircularButton>
+      ) : (
+        <VoiceButton onClick={handleStartClick} type="button">
+          <MicIcon>🎙️</MicIcon>
+          {buttonLabel}
+        </VoiceButton>
+      )}
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Voice Answer">
         <ModalBody>
@@ -272,6 +280,34 @@ const VoiceButton = styled.button`
     transform: translateY(-1px);
     box-shadow: 0 2px 8px ${({ theme }) => theme.shadow};
   }
+`;
+
+const CircularButton = styled.button`
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, ${({ theme }) => theme.accent} 0%, ${({ theme }) => theme.accentGold} 150%);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px ${({ theme }) => theme.accent}44;
+  margin: 0 auto;
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 28px ${({ theme }) => theme.accent}55;
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+`;
+
+const CircularMicIcon = styled.span`
+  font-size: 1.75rem;
 `;
 
 const MicIcon = styled.span`

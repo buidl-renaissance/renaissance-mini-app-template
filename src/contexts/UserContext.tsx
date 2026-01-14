@@ -149,6 +149,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const authAttemptedRef = useRef(false);
+  const userRef = useRef<User | null>(user);
+  
+  // Keep userRef in sync with user state
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   // Sync user state to localStorage whenever it changes
   useEffect(() => {
@@ -422,7 +428,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const maxChecks = 10;
     const checkInterval = setInterval(async () => {
       checkCount++;
-      if (checkCount >= maxChecks || authAttemptedRef.current || user) {
+      if (checkCount >= maxChecks || authAttemptedRef.current || userRef.current) {
         clearInterval(checkInterval);
         return;
       }
@@ -448,7 +454,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       contextCallback = null;
       clearInterval(checkInterval);
     };
-  }, [authenticateFromContext, user]);
+  }, [authenticateFromContext]);
 
   return (
     <UserContext.Provider value={{ user, isLoading, error, setUser, signOut, refreshUser }}>

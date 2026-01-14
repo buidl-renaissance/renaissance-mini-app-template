@@ -7,11 +7,114 @@ export interface Template {
   questions?: string[];
 }
 
+export interface BlockTypeConfig {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  questions: string[];
+  suggestedConnectors?: string[];
+}
+
 export const getQuestionsForTemplate = (template: Template) => {
   return templateQuestions[template.id as keyof typeof templateQuestions] || [];
 };
 
-// Template-specific questions to guide the building process
+// Block type specific questions for the onboarding flow
+export const blockTypeQuestions: Record<string, BlockTypeConfig> = {
+  creator: {
+    id: 'creator',
+    name: 'Creator Block',
+    icon: '🎨',
+    description: 'Art, music, writing, culture, expression',
+    questions: [
+      "What kind of creative work do you do or want to showcase?",
+      "Who is your audience — who do you want to reach with your work?",
+      "How do you want people to experience or interact with your creations?",
+      "Do you want to sell your work, share it freely, or build a following first?",
+      "What tools or platforms do you currently use for your creative process?",
+      "What would make this block feel authentically *you*?",
+    ],
+    suggestedConnectors: ['events', 'collab'],
+  },
+  community: {
+    id: 'community',
+    name: 'Community Block',
+    icon: '🧠',
+    description: 'Events, meetups, education, organizing',
+    questions: [
+      "What brings your community together — what's the shared purpose or passion?",
+      "Who are the people you want to gather? Describe your ideal member.",
+      "What kinds of activities or events will happen in your community?",
+      "How will members connect with each other and build relationships?",
+      "What does a thriving version of this community look like in 6 months?",
+      "How will you welcome new members and maintain the culture?",
+    ],
+    suggestedConnectors: ['events', 'collab', 'gamenight'],
+  },
+  project: {
+    id: 'project',
+    name: 'Project / Product Block',
+    icon: '🏗',
+    description: 'Apps, tools, experiments, startups',
+    questions: [
+      "What are you building and what problem does it solve?",
+      "Who will use this and why would they care?",
+      "What exists today that people use instead? What's broken about it?",
+      "What's the smallest version you could launch to learn something?",
+      "What skills or resources do you need to make this real?",
+      "How will you know if it's working — what does success look like?",
+    ],
+    suggestedConnectors: ['collab'],
+  },
+  business: {
+    id: 'business',
+    name: 'Business Block',
+    icon: '🏪',
+    description: 'Local services, venues, shops',
+    questions: [
+      "What does your business do? Describe it like you're telling a friend.",
+      "Who are your customers and how do they find you today?",
+      "What makes your business special — why should people choose you?",
+      "What's the one thing you wish more people knew about your business?",
+      "How do you want customers to interact with you through this block?",
+      "What would help you serve your community better?",
+    ],
+    suggestedConnectors: ['events'],
+  },
+  game: {
+    id: 'game',
+    name: 'Game / Interactive Block',
+    icon: '🎮',
+    description: 'Experiences, quests, play',
+    questions: [
+      "What kind of experience are you creating — game, quest, interactive story?",
+      "What's the core loop or mechanic that makes it fun?",
+      "Who is this for and what will they feel while playing?",
+      "How long should a typical session last?",
+      "Will people play alone, together, or compete against each other?",
+      "What makes someone want to come back and play again?",
+    ],
+    suggestedConnectors: ['gamenight', 'events'],
+  },
+  unsure: {
+    id: 'unsure',
+    name: 'Not Sure Yet',
+    icon: '🌱',
+    description: 'Help me shape it',
+    questions: [
+      "What's been on your mind lately — any ideas you keep coming back to?",
+      "What are you good at or passionate about?",
+      "Who do you want to help or connect with?",
+      "Is there a problem you see in your community that bothers you?",
+      "If you could wave a magic wand and create anything, what would it be?",
+      "What would make you excited to work on this every day?",
+    ],
+    suggestedConnectors: [],
+  },
+};
+
+// Legacy template questions (keeping for backwards compatibility)
 export const templateQuestions = {
   webapp: [
     "What is the name of your web application?",

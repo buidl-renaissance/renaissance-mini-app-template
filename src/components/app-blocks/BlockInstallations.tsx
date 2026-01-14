@@ -29,8 +29,7 @@ const InstallationCard = styled.div<{ $index: number }>`
   background: ${({ theme }) => theme.surface};
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 14px;
-  animation: ${fadeIn} 0.4s ease-out both;
-  animation-delay: ${({ $index }) => $index * 0.05}s;
+  animation: ${fadeIn} 0.4s ease-out ${({ $index }) => $index * 0.05}s both;
 `;
 
 const BlockIcon = styled.div<{ $iconUrl?: string | null; $category?: string }>`

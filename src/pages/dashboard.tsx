@@ -4,6 +4,7 @@ import styled, { keyframes } from "styled-components";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
+import { useAppBlock } from "@/contexts/AppBlockContext";
 import { Loading } from "@/components/Loading";
 
 // App configuration
@@ -44,70 +45,53 @@ const Container = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   background: ${({ theme }) => theme.background};
-  padding: 2rem 1.5rem;
 `;
 
-const Main = styled.main`
+// Top Header Bar
+const Header = styled.header`
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  max-width: 600px;
-  width: 100%;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  animation: ${fadeIn} 0.4s ease-out;
 `;
 
-// User Section - Vertical Layout
-const UserSection = styled.div`
+const HeaderUser = styled(Link)`
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 2.5rem;
-  animation: ${scaleIn} 0.5s ease-out;
+  gap: 0.75rem;
+  text-decoration: none;
+  padding: 0.375rem 0.75rem 0.375rem 0.375rem;
+  border-radius: 100px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: ${({ theme }) => theme.surface};
+  }
 `;
 
-const ProfileImageContainer = styled(Link)`
-  width: 100px;
-  height: 100px;
+const HeaderAvatar = styled.div`
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid ${({ theme }) => theme.accentGold};
+  border: 2px solid ${({ theme }) => theme.accentGold};
   background: ${({ theme }) => theme.surface};
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 
-    0 8px 24px ${({ theme }) => theme.shadow},
-    inset 0 0 0 1px ${({ theme }) => theme.accent}22;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  position: relative;
-
-  &::after {
-    content: '';
-    position: absolute;
-    inset: -5px;
-    border-radius: 50%;
-    border: 1px solid ${({ theme }) => theme.accentGold}40;
-  }
-
-  &:hover {
-    transform: scale(1.05);
-    border-color: ${({ theme }) => theme.accent};
-  }
+  flex-shrink: 0;
 `;
 
-const ProfileImage = styled.img`
+const HeaderAvatarImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
 `;
 
-const DefaultAvatar = styled.div`
+const HeaderAvatarFallback = styled.div`
   width: 100%;
   height: 100%;
   background: linear-gradient(
@@ -119,22 +103,60 @@ const DefaultAvatar = styled.div`
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 2.5rem;
+  font-size: 0.875rem;
   font-weight: 600;
   font-family: 'Cormorant Garamond', Georgia, serif;
 `;
 
-const Greeting = styled.h1`
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.75rem;
-  font-weight: 600;
-  margin: 0;
+const HeaderUserName = styled.span`
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
   color: ${({ theme }) => theme.text};
   
-  @media (max-width: 768px) {
-    font-size: 1.5rem;
+  @media (max-width: 480px) {
+    display: none;
   }
 `;
+
+const HeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const HeaderButton = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  background: ${({ theme }) => theme.surface};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 8px;
+  color: ${({ theme }) => theme.textSecondary};
+  text-decoration: none;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: ${({ theme }) => theme.accent};
+    color: ${({ theme }) => theme.accent};
+  }
+`;
+
+const Main = styled.main`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+`;
+
 
 // Block Content Section
 const ContentSection = styled.section`
@@ -177,34 +199,6 @@ const Divider = styled.div`
   margin: 0.5rem 0;
 `;
 
-const CreateButton = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, ${({ theme }) => theme.accent} 0%, ${({ theme }) => theme.accentGold} 150%);
-  border: none;
-  border-radius: 12px;
-  color: white;
-  text-decoration: none;
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1.15rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 16px ${({ theme }) => theme.accent}44;
-  margin-top: 1.5rem;
-  
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 24px ${({ theme }) => theme.accent}55;
-  }
-`;
-
-const SecondaryActions = styled.div`
-  display: flex;
-  gap: 1.5rem;
-  margin-top: 2.5rem;
-`;
 
 const SecondaryLink = styled(Link)`
   color: ${({ theme }) => theme.textSecondary};
@@ -218,22 +212,6 @@ const SecondaryLink = styled(Link)`
   }
 `;
 
-const BrandMark = styled.div`
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.accent};
-  letter-spacing: 0.05em;
-  animation: ${fadeIn} 0.5s ease-out 0.3s both;
-  
-  @media (max-width: 480px) {
-    position: static;
-    margin-bottom: 2rem;
-  }
-`;
 
 const BlockImageContainer = styled.div`
   display: flex;
@@ -255,89 +233,108 @@ const BlockImage = styled.img`
   }
 `;
 
-const NameInputSection = styled.div`
+// App Blocks List Styles
+const BlocksListContainer = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 1rem;
+`;
+
+const BlockCard = styled(Link)<{ $index: number }>`
+  display: flex;
   align-items: center;
-  gap: 1rem;
-  width: 100%;
-  max-width: 360px;
-  animation: ${fadeIn} 0.5s ease-out 0.2s both;
-`;
-
-const NameLabel = styled.label`
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.textSecondary};
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-`;
-
-const NameInput = styled.input`
-  width: 100%;
-  padding: 1rem 1.25rem;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 1.25rem;
-  font-weight: 500;
-  text-align: center;
-  color: ${({ theme }) => theme.text};
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
   background: ${({ theme }) => theme.surface};
-  border: 2px solid ${({ theme }) => theme.border};
+  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 12px;
-  transition: all 0.3s ease;
-
-  &:focus {
-    outline: none;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  animation: ${fadeIn} 0.4s ease-out ${({ $index }) => $index * 0.05}s both;
+  
+  &:hover {
     border-color: ${({ theme }) => theme.accent};
-    box-shadow: 
-      0 0 0 4px ${({ theme }) => theme.glow || 'rgba(167, 139, 250, 0.2)'},
-      0 0 30px ${({ theme }) => theme.glow || 'rgba(167, 139, 250, 0.2)'};
-  }
-
-  &::placeholder {
-    color: ${({ theme }) => theme.textSecondary};
-    opacity: 0.5;
+    transform: translateX(4px);
+    box-shadow: 0 4px 16px ${({ theme }) => theme.shadow};
   }
 `;
 
-const ContinueButton = styled.button`
-  display: inline-flex;
+const BlockCardIcon = styled.div<{ $iconUrl?: string | null }>`
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: ${({ $iconUrl, theme }) => 
+    $iconUrl 
+      ? `url(${$iconUrl}) center/cover no-repeat` 
+      : `linear-gradient(135deg, ${theme.accent} 0%, ${theme.accentGold} 100%)`
+  };
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  flex-shrink: 0;
+`;
+
+const BlockCardInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+`;
+
+const BlockCardName = styled.span`
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text};
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const BlockCardArrow = styled.span`
+  color: ${({ theme }) => theme.accent};
+  font-size: 1rem;
+  transition: transform 0.2s ease;
+  
+  ${BlockCard}:hover & {
+    transform: translateX(2px);
+  }
+`;
+
+const NewBlockButton = styled(Link)`
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  width: 100%;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, ${({ theme }) => theme.accent} 0%, ${({ theme }) => theme.accentGold} 150%);
-  border: none;
+  padding: 0.875rem 1rem;
+  background: transparent;
+  border: 2px dashed ${({ theme }) => theme.border};
   border-radius: 12px;
-  color: white;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
+  text-decoration: none;
+  color: ${({ theme }) => theme.textSecondary};
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 20px ${({ theme }) => theme.glow || 'rgba(167, 139, 250, 0.3)'};
-  margin-top: 0.5rem;
   
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 30px ${({ theme }) => theme.glowSecondary || 'rgba(232, 121, 249, 0.4)'};
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    box-shadow: none;
+  &:hover {
+    border-color: ${({ theme }) => theme.accent};
+    color: ${({ theme }) => theme.accent};
+    background: ${({ theme }) => theme.accent}08;
   }
 `;
 
 const DashboardPage: React.FC = () => {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useUser();
+  const { appBlocks, isLoading: isBlocksLoading, fetchAppBlocks } = useAppBlock();
   const [imageError, setImageError] = useState(false);
-  const [blockName, setBlockName] = useState('');
-  const [isBlockClaimed, setIsBlockClaimed] = useState(false);
 
   // Redirect to auth if not authenticated
   useEffect(() => {
@@ -346,14 +343,27 @@ const DashboardPage: React.FC = () => {
     }
   }, [isUserLoading, user, router]);
 
+  // Fetch app blocks when user is available
+  useEffect(() => {
+    if (user) {
+      fetchAppBlocks();
+    }
+  }, [user, fetchAppBlocks]);
 
-  // Show loading while checking auth
-  if (isUserLoading) {
+  // Redirect new users to get-started
+  useEffect(() => {
+    if (!isBlocksLoading && appBlocks.length === 0 && user) {
+      router.push('/get-started');
+    }
+  }, [isBlocksLoading, appBlocks, user, router]);
+
+  // Show loading while checking auth or fetching blocks
+  if (isUserLoading || isBlocksLoading) {
     return <Loading text="Loading..." />;
   }
 
   // Don't render anything while redirecting
-  if (!user) {
+  if (!user || appBlocks.length === 0) {
     return null;
   }
 
@@ -374,82 +384,72 @@ const DashboardPage: React.FC = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
 
-      {/* <BrandMark>Renaissance City</BrandMark> */}
-
-      <Main>
-        <UserSection>
-          <ProfileImageContainer href="/account" title="Account Settings">
+      <Header>
+        <HeaderUser href="/account" title="Account Settings">
+          <HeaderAvatar>
             {user.pfpUrl && !imageError ? (
-              <ProfileImage
+              <HeaderAvatarImage
                 src={user.pfpUrl}
                 alt={displayName}
                 onError={() => setImageError(true)}
               />
             ) : (
-              <DefaultAvatar>{initials}</DefaultAvatar>
+              <HeaderAvatarFallback>{initials}</HeaderAvatarFallback>
             )}
-          </ProfileImageContainer>
-          <Greeting>Welcome, {displayName}</Greeting>
-        </UserSection>
+          </HeaderAvatar>
+          <HeaderUserName>{displayName}</HeaderUserName>
+        </HeaderUser>
+        
+        <HeaderActions>
+          {appBlocks.length > 0 && (
+            <HeaderButton href="/app-blocks">
+              My Blocks
+            </HeaderButton>
+          )}
+          <HeaderButton href="/account">
+            ⚙️
+          </HeaderButton>
+        </HeaderActions>
+      </Header>
 
+      <Main>
         <BlockImageContainer>
           <BlockImage src="/app-block.png" alt="Your Block" />
         </BlockImageContainer>
 
         <ContentSection>
-          {!isBlockClaimed ? (
-            <>
-              <BlockTitle>Name Your Block</BlockTitle>
-              <Divider />
-              <BlockText>
-                Every block in Renaissance City has a name. What will yours be called?
-              </BlockText>
-              
-              <NameInputSection>
-                <NameLabel htmlFor="blockName">Block Name</NameLabel>
-                <NameInput
-                  id="blockName"
-                  type="text"
-                  value={blockName}
-                  onChange={(e) => setBlockName(e.target.value)}
-                  placeholder="Enter block name..."
-                  maxLength={40}
-                  autoFocus
-                />
-                <ContinueButton 
-                  disabled={!blockName.trim()}
-                  onClick={() => {
-                    setIsBlockClaimed(true);
-                  }}
-                >
-                  Continue →
-                </ContinueButton>
-              </NameInputSection>
-            </>
-          ) : (
-            <>
-              <BlockTitle>{blockName}</BlockTitle>
-              <Divider />
-              <BlockText>
-                This block is now part of Renaissance City. What you build here 
-                will connect to others — together, we&apos;re rebuilding Detroit, 
-                one block at a time.
-              </BlockText>
-              
-              <CreateButton href="/app-blocks/new">
-                🏗️ Create App Block
-              </CreateButton>
-            </>
+          <BlockTitle>Your Blocks</BlockTitle>
+          <Divider />
+          <BlockText>
+            Building the renaissance, one block at a time.
+          </BlockText>
+          
+          <BlocksListContainer>
+            {appBlocks.slice(0, 5).map((block, index) => (
+              <BlockCard 
+                key={block.id} 
+                href={`/app-blocks/${block.id}`}
+                $index={index}
+              >
+                <BlockCardIcon $iconUrl={block.iconUrl}>
+                  {!block.iconUrl && block.name.charAt(0).toUpperCase()}
+                </BlockCardIcon>
+                <BlockCardInfo>
+                  <BlockCardName>{block.name}</BlockCardName>
+                </BlockCardInfo>
+                <BlockCardArrow>→</BlockCardArrow>
+              </BlockCard>
+            ))}
+            <NewBlockButton href="/app-blocks/new">
+              + Create New Block
+            </NewBlockButton>
+          </BlocksListContainer>
+          
+          {appBlocks.length > 5 && (
+            <SecondaryLink href="/app-blocks" style={{ marginTop: '1rem' }}>
+              View all {appBlocks.length} blocks →
+            </SecondaryLink>
           )}
-
-          <SecondaryActions>
-            <SecondaryLink href="/app-blocks">
-              My App Blocks
-            </SecondaryLink>
-            <SecondaryLink href="/account">
-              Account Settings
-            </SecondaryLink>
-          </SecondaryActions>
         </ContentSection>
       </Main>
     </Container>

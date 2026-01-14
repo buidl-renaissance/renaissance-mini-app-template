@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import styled, { keyframes } from "styled-components";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
+import { useAppBlock } from "@/contexts/AppBlockContext";
 import { Loading } from "@/components/Loading";
-import Templates from "@/components/Templates";
 
 const APP_NAME = "Renaissance City";
 
@@ -20,90 +20,181 @@ const fadeIn = keyframes`
   }
 `;
 
+const scaleIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
+const pulseGlow = keyframes`
+  0%, 100% {
+    filter: drop-shadow(0 0 20px rgba(167, 139, 250, 0.5)) drop-shadow(0 0 40px rgba(232, 121, 249, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 30px rgba(167, 139, 250, 0.7)) drop-shadow(0 0 60px rgba(232, 121, 249, 0.5));
+  }
+`;
+
 const Container = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background: ${({ theme }) => theme.background};
+  padding: 2rem 1.5rem;
 `;
 
 const Main = styled.main`
-  flex: 1;
   display: flex;
   flex-direction: column;
-`;
-
-const Header = styled.header`
-  width: 100%;
-  padding: 1rem 1.5rem;
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: ${({ theme }) => theme.surface};
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-  box-shadow: 0 2px 8px ${({ theme }) => theme.shadow};
-`;
-
-const BackLink = styled(Link)`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: ${({ theme }) => theme.textSecondary};
-  text-decoration: none;
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1rem;
-  transition: color 0.2s ease;
-  
-  &:hover {
-    color: ${({ theme }) => theme.accent};
-  }
-`;
-
-const BrandName = styled.span`
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.accent};
-  letter-spacing: 0.05em;
-`;
-
-const HeroSection = styled.section`
-  padding: 3rem 1.5rem 2rem;
   text-align: center;
-  animation: ${fadeIn} 0.5s ease-out;
-  
-  @media (min-width: 768px) {
-    padding: 4rem 2rem 2.5rem;
-  }
-`;
-
-const Title = styled.h1`
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.text};
-  margin: 0 0 0.75rem 0;
-  
-  @media (min-width: 768px) {
-    font-size: 3rem;
-  }
-`;
-
-const Subtitle = styled.p`
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1.15rem;
-  color: ${({ theme }) => theme.textSecondary};
-  margin: 0 auto;
   max-width: 600px;
-  line-height: 1.6;
+  width: 100%;
+`;
+
+// User Welcome Section
+const UserSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  animation: ${scaleIn} 0.5s ease-out;
+`;
+
+const ProfileImageContainer = styled(Link)`
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid ${({ theme }) => theme.accentGold};
+  background: ${({ theme }) => theme.surface};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 8px 24px ${({ theme }) => theme.shadow},
+    inset 0 0 0 1px ${({ theme }) => theme.accent}22;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1px solid ${({ theme }) => theme.accentGold}40;
+  }
+
+  &:hover {
+    transform: scale(1.05);
+    border-color: ${({ theme }) => theme.accent};
+  }
+`;
+
+const ProfileImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const DefaultAvatar = styled.div`
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    ${({ theme }) => theme.accent} 0%,
+    ${({ theme }) => theme.accentGold} 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2rem;
+  font-weight: 600;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+`;
+
+const Greeting = styled.h1`
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: ${({ theme }) => theme.text};
   
-  @media (min-width: 768px) {
+  @media (max-width: 768px) {
     font-size: 1.25rem;
   }
 `;
 
+// Block Content Section
+const ContentSection = styled.section`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: ${fadeIn} 0.6s ease-out 0.2s both;
+`;
+
+const BlockImageContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0.5rem 0 1.5rem;
+  animation: ${scaleIn} 0.6s ease-out 0.1s both;
+`;
+
+const BlockImage = styled.img`
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  animation: ${pulseGlow} 3s ease-in-out infinite;
+  
+  @media (max-width: 480px) {
+    width: 120px;
+    height: 120px;
+  }
+`;
+
+const SmallBlockImage = styled.img`
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  animation: ${pulseGlow} 3s ease-in-out infinite;
+  margin-bottom: 0.5rem;
+`;
+
+const BlockTitle = styled.h2`
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 2.25rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text};
+  margin: 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1.75rem;
+  }
+`;
+
+const BlockText = styled.p`
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 1rem;
+  color: ${({ theme }) => theme.textSecondary};
+  max-width: 480px;
+  line-height: 1.7;
+  margin: 0;
+`;
+
 const Divider = styled.div`
-  width: 80px;
+  width: 60px;
   height: 2px;
   background: linear-gradient(
     90deg,
@@ -111,30 +202,137 @@ const Divider = styled.div`
     ${({ theme }) => theme.accentGold},
     transparent
   );
-  margin: 1.5rem auto 0;
+  margin: 0.5rem 0;
 `;
 
-const ContentSection = styled.section`
-  flex: 1;
-  animation: ${fadeIn} 0.6s ease-out 0.2s both;
+const NameInputSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 360px;
+  animation: ${fadeIn} 0.5s ease-out 0.2s both;
+  margin-top: 1.5rem;
 `;
 
-const FooterNote = styled.div`
-  padding: 2rem 1.5rem;
+const NameInput = styled.input`
+  width: 100%;
+  padding: 1rem 1.25rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 500;
   text-align: center;
-  animation: ${fadeIn} 0.6s ease-out 0.4s both;
+  color: ${({ theme }) => theme.text};
+  background: ${({ theme }) => theme.surface};
+  border: 2px solid ${({ theme }) => theme.border};
+  border-radius: 12px;
+  transition: all 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.accent};
+    box-shadow: 
+      0 0 0 4px ${({ theme }) => theme.glow || 'rgba(167, 139, 250, 0.2)'},
+      0 0 30px ${({ theme }) => theme.glow || 'rgba(167, 139, 250, 0.2)'};
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.textSecondary};
+    opacity: 0.5;
+  }
 `;
 
-const FooterText = styled.p`
+const ContinueButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, ${({ theme }) => theme.accent} 0%, ${({ theme }) => theme.accentGold} 150%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px ${({ theme }) => theme.glow || 'rgba(167, 139, 250, 0.3)'};
+  margin-top: 0.5rem;
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px ${({ theme }) => theme.glowSecondary || 'rgba(232, 121, 249, 0.4)'};
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+`;
+
+// Block Type Selection
+const BlockTypeGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 1.5rem;
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const BlockTypeCard = styled.button<{ $index: number }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  background: ${({ theme }) => theme.surface};
+  border: 2px solid ${({ theme }) => theme.border};
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: ${fadeIn} 0.4s ease-out ${({ $index }) => 0.1 + $index * 0.05}s both;
+  
+  &:hover {
+    border-color: ${({ theme }) => theme.accent};
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px ${({ theme }) => theme.shadow};
+  }
+`;
+
+const BlockTypeIcon = styled.span`
+  font-size: 2rem;
+`;
+
+const BlockTypeName = styled.span`
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text};
+`;
+
+const BlockTypeDesc = styled.span`
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   color: ${({ theme }) => theme.textSecondary};
-  font-style: italic;
+  line-height: 1.4;
 `;
 
 const GetStartedPage: React.FC = () => {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useUser();
+  const { appBlocks, isLoading: isBlocksLoading, fetchAppBlocks } = useAppBlock();
+  const [imageError, setImageError] = useState(false);
+  const [blockName, setBlockName] = useState('');
+  const [isBlockClaimed, setIsBlockClaimed] = useState(false);
 
   // Redirect to auth if not authenticated
   useEffect(() => {
@@ -143,14 +341,35 @@ const GetStartedPage: React.FC = () => {
     }
   }, [isUserLoading, user, router]);
 
+  // Fetch app blocks to check if user should be here
+  useEffect(() => {
+    if (user) {
+      fetchAppBlocks();
+    }
+  }, [user, fetchAppBlocks]);
 
-  if (isUserLoading) {
+  // Redirect to dashboard if user already has blocks
+  useEffect(() => {
+    if (!isBlocksLoading && appBlocks.length > 0) {
+      router.push('/dashboard');
+    }
+  }, [isBlocksLoading, appBlocks, router]);
+
+  if (isUserLoading || isBlocksLoading) {
     return <Loading text="Loading..." />;
   }
 
   if (!user) {
     return null;
   }
+
+  const displayName = user.username || user.displayName || 'User';
+  const initials = displayName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <Container>
@@ -162,32 +381,111 @@ const GetStartedPage: React.FC = () => {
       </Head>
 
       <Main>
-        <Header>
-          <BackLink href="/dashboard">
-            ← Back to Dashboard
-          </BackLink>
-          <BrandName>Renaissance City</BrandName>
-        </Header>
+        {!isBlockClaimed ? (
+          // Step 1: Name your block
+          <>
+            <UserSection>
+              <ProfileImageContainer href="/account" title="Account Settings">
+                {user.pfpUrl && !imageError ? (
+                  <ProfileImage
+                    src={user.pfpUrl}
+                    alt={displayName}
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <DefaultAvatar>{initials}</DefaultAvatar>
+                )}
+              </ProfileImageContainer>
+              <Greeting>Welcome, {displayName}</Greeting>
+            </UserSection>
 
-        <HeroSection>
-          <Title>Let&apos;s Build Something</Title>
-          <Subtitle>
-            Every great project starts with a clear vision. Choose a path below 
-            and we&apos;ll help you think through the key questions.
-          </Subtitle>
-          <Divider />
-        </HeroSection>
+            <BlockImageContainer>
+              <BlockImage src="/app-block.png" alt="Your Block" />
+            </BlockImageContainer>
 
-        <ContentSection>
-          <Templates />
-        </ContentSection>
+            <ContentSection>
+              <BlockTitle>Name Your Block</BlockTitle>
+              <Divider />
+              <BlockText>
+                In Renaissance City, every block has a story.
+              </BlockText>
+              <BlockText>
+                Yours starts with a name.
+              </BlockText>
+              
+              <NameInputSection>
+                <NameInput
+                  id="blockName"
+                  type="text"
+                  value={blockName}
+                  onChange={(e) => setBlockName(e.target.value)}
+                  placeholder="Enter block name..."
+                  maxLength={40}
+                  autoFocus
+                />
+                <ContinueButton 
+                  disabled={!blockName.trim()}
+                  onClick={() => {
+                    setIsBlockClaimed(true);
+                  }}
+                >
+                  Continue →
+                </ContinueButton>
+              </NameInputSection>
+            </ContentSection>
+          </>
+        ) : (
+          // Step 2: Choose what to build
+          <>
+            <SmallBlockImage src="/app-block.png" alt="Your Block" />
 
-        <FooterNote>
-          <FooterText>
-            Don&apos;t worry about having all the answers — this is just a starting point to 
-            help shape your thinking.
-          </FooterText>
-        </FooterNote>
+            <ContentSection>
+              <BlockTitle>{blockName}</BlockTitle>
+              <Divider />
+              <BlockText>
+                What you build here will connect to others — together, we&apos;re rebuilding Detroit, one block at a time.
+              </BlockText>
+              
+              <BlockTypeGrid>
+                <BlockTypeCard $index={0} onClick={() => router.push(`/onboarding/creator?name=${encodeURIComponent(blockName)}`)}>
+                  <BlockTypeIcon>🎨</BlockTypeIcon>
+                  <BlockTypeName>Creator Block</BlockTypeName>
+                  <BlockTypeDesc>Art, music, writing, culture, expression</BlockTypeDesc>
+                </BlockTypeCard>
+                
+                <BlockTypeCard $index={1} onClick={() => router.push(`/onboarding/community?name=${encodeURIComponent(blockName)}`)}>
+                  <BlockTypeIcon>🧠</BlockTypeIcon>
+                  <BlockTypeName>Community Block</BlockTypeName>
+                  <BlockTypeDesc>Events, meetups, education, organizing</BlockTypeDesc>
+                </BlockTypeCard>
+                
+                <BlockTypeCard $index={2} onClick={() => router.push(`/onboarding/project?name=${encodeURIComponent(blockName)}`)}>
+                  <BlockTypeIcon>🏗</BlockTypeIcon>
+                  <BlockTypeName>Project / Product Block</BlockTypeName>
+                  <BlockTypeDesc>Apps, tools, experiments, startups</BlockTypeDesc>
+                </BlockTypeCard>
+                
+                <BlockTypeCard $index={3} onClick={() => router.push(`/onboarding/business?name=${encodeURIComponent(blockName)}`)}>
+                  <BlockTypeIcon>🏪</BlockTypeIcon>
+                  <BlockTypeName>Business Block</BlockTypeName>
+                  <BlockTypeDesc>Local services, venues, shops</BlockTypeDesc>
+                </BlockTypeCard>
+                
+                <BlockTypeCard $index={4} onClick={() => router.push(`/onboarding/game?name=${encodeURIComponent(blockName)}`)}>
+                  <BlockTypeIcon>🎮</BlockTypeIcon>
+                  <BlockTypeName>Game / Interactive Block</BlockTypeName>
+                  <BlockTypeDesc>Experiences, quests, play</BlockTypeDesc>
+                </BlockTypeCard>
+                
+                <BlockTypeCard $index={5} onClick={() => router.push(`/onboarding/unsure?name=${encodeURIComponent(blockName)}`)}>
+                  <BlockTypeIcon>🌱</BlockTypeIcon>
+                  <BlockTypeName>Not Sure Yet</BlockTypeName>
+                  <BlockTypeDesc>Help me shape it</BlockTypeDesc>
+                </BlockTypeCard>
+              </BlockTypeGrid>
+            </ContentSection>
+          </>
+        )}
       </Main>
     </Container>
   );

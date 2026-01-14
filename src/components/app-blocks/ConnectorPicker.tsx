@@ -61,8 +61,7 @@ const ConnectorCard = styled.button<{ $selected: boolean; $index: number }>`
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
-  animation: ${fadeIn} 0.4s ease-out both;
-  animation-delay: ${({ $index }) => $index * 0.05}s;
+  animation: ${fadeIn} 0.4s ease-out ${({ $index }) => $index * 0.05}s both;
   
   &:hover {
     border-color: ${({ theme }) => theme.accent};
