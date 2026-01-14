@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, createGlobalStyle } from "styled-components";
 import { Modal, ModalBody, ModalFooter, ModalButton, TextArea } from "./Modal";
 
 interface VoiceTranscriberProps {
@@ -15,9 +15,9 @@ const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
   placeholder = "Your spoken answer will appear here...",
   variant = "default",
 }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -76,6 +76,9 @@ const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
 
   const startRecording = async () => {
     setError(null);
+    setTranscript("");
+    setAudioUrl(null);
+    
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -103,6 +106,7 @@ const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm;codecs=opus' });
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
+        setShowReviewModal(true);
         handleTranscribe();
       };
 
@@ -131,9 +135,7 @@ const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
   };
 
   const handleStartClick = () => {
-    setTranscript("");
-    setAudioUrl(null);
-    setIsModalOpen(true);
+    startRecording();
   };
 
   const handleUseTranscript = () => {
@@ -144,68 +146,65 @@ const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
   };
 
   const handleCloseModal = () => {
-    if (isRecording) {
-      stopRecording();
-    }
-    setIsModalOpen(false);
+    setShowReviewModal(false);
     setAudioUrl(null);
     setTranscript("");
     setError(null);
   };
 
+  const handleReRecord = () => {
+    setShowReviewModal(false);
+    setAudioUrl(null);
+    setTranscript("");
+    setError(null);
+    startRecording();
+  };
+
   return (
     <>
+      {/* Hide body scroll when recording */}
+      {isRecording && <LockScroll />}
+      
+      {/* Main trigger button */}
       {variant === 'circular' ? (
-        <CircularButton onClick={handleStartClick} type="button">
+        <CircularButton onClick={handleStartClick} type="button" disabled={isRecording}>
           <CircularMicIcon>🎙️</CircularMicIcon>
         </CircularButton>
       ) : (
-        <VoiceButton onClick={handleStartClick} type="button">
+        <VoiceButton onClick={handleStartClick} type="button" disabled={isRecording}>
           <MicIcon>🎙️</MicIcon>
           {buttonLabel}
         </VoiceButton>
       )}
 
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Voice Answer">
+      {/* Error message */}
+      {error && !showReviewModal && <InlineError>{error}</InlineError>}
+
+      {/* Floating Recording Indicator */}
+      {isRecording && (
+        <FloatingRecorder>
+          <RecordingDot />
+          <RecordingTimer>{formatTime(recordingTime)}</RecordingTimer>
+          <StopButton onClick={stopRecording} type="button">
+            <StopIcon />
+          </StopButton>
+        </FloatingRecorder>
+      )}
+
+      {/* Review Modal - only shown after recording completes */}
+      <Modal isOpen={showReviewModal} onClose={handleCloseModal} title="Voice Answer">
         <ModalBody>
-          <RecordingSection>
-            {!isRecording && !audioUrl && (
-              <>
-                <Instruction>
-                  Tap the microphone to start recording your answer
-                </Instruction>
-                <RecordButton onClick={startRecording}>
-                  <MicIconLarge>🎙️</MicIconLarge>
-                </RecordButton>
-              </>
-            )}
-
-            {isRecording && (
-              <RecordingActive>
-                <RecordingIndicator>
-                  <PulsingDot />
-                  <RecordingTime>{formatTime(recordingTime)}</RecordingTime>
-                </RecordingIndicator>
-                <RecordingHint>Speak your answer clearly...</RecordingHint>
-                <StopButton onClick={stopRecording}>
-                  <StopIcon />
-                  Stop Recording
-                </StopButton>
-              </RecordingActive>
-            )}
-
-            {audioUrl && !isRecording && (
-              <AudioSection>
-                <AudioPlayer controls src={audioUrl} />
-                {isTranscribing && (
-                  <TranscribingStatus>
-                    <Spinner />
-                    Transcribing your voice...
-                  </TranscribingStatus>
-                )}
-              </AudioSection>
-            )}
-          </RecordingSection>
+          {audioUrl && (
+            <AudioSection>
+              <AudioPlayer controls src={audioUrl} />
+              {isTranscribing && (
+                <TranscribingStatus>
+                  <Spinner />
+                  Transcribing your voice...
+                </TranscribingStatus>
+              )}
+            </AudioSection>
+          )}
 
           {error && <ErrorMessage>{error}</ErrorMessage>}
 
@@ -224,11 +223,11 @@ const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
         </ModalBody>
         
         <ModalFooter>
-          <ModalButton onClick={handleCloseModal}>Cancel</ModalButton>
+          <ModalButton onClick={handleReRecord}>Re-record</ModalButton>
           <ModalButton
             $variant="primary"
             onClick={handleUseTranscript}
-            disabled={!transcript.trim()}
+            disabled={!transcript.trim() || isTranscribing}
           >
             Use This Answer
           </ModalButton>
@@ -240,6 +239,13 @@ const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
 
 export default VoiceTranscriber;
 
+// Lock scroll when recording
+const LockScroll = createGlobalStyle`
+  body {
+    overflow: hidden;
+  }
+`;
+
 // Animations
 const pulse = keyframes`
   0%, 100% {
@@ -247,14 +253,25 @@ const pulse = keyframes`
     opacity: 1;
   }
   50% {
-    transform: scale(1.15);
-    opacity: 0.7;
+    transform: scale(1.2);
+    opacity: 0.8;
   }
 `;
 
 const spin = keyframes`
   to {
     transform: rotate(360deg);
+  }
+`;
+
+const slideIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 `;
 
@@ -274,11 +291,16 @@ const VoiceButton = styled.button`
   cursor: pointer;
   transition: all 0.2s ease;
   
-  &:hover {
+  &:hover:not(:disabled) {
     border-color: ${({ theme }) => theme.accent};
     color: ${({ theme }) => theme.accent};
     transform: translateY(-1px);
     box-shadow: 0 2px 8px ${({ theme }) => theme.shadow};
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 `;
 
@@ -296,13 +318,18 @@ const CircularButton = styled.button`
   box-shadow: 0 4px 20px ${({ theme }) => theme.accent}44;
   margin: 0 auto;
   
-  &:hover {
+  &:hover:not(:disabled) {
     transform: scale(1.05);
     box-shadow: 0 6px 28px ${({ theme }) => theme.accent}55;
   }
   
-  &:active {
+  &:active:not(:disabled) {
     transform: scale(0.98);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 `;
 
@@ -314,107 +341,76 @@ const MicIcon = styled.span`
   font-size: 1.1rem;
 `;
 
-const RecordingSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1.5rem 0;
-  min-height: 150px;
-  justify-content: center;
-`;
-
-const Instruction = styled.p`
+const InlineError = styled.div`
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1rem;
-  color: ${({ theme }) => theme.textSecondary};
-  margin: 0 0 1.25rem 0;
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
   text-align: center;
 `;
 
-const RecordButton = styled.button`
-  width: 80px;
-  height: 80px;
+// Floating Recording Indicator
+const FloatingRecorder = styled.div`
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: white;
+  border-radius: 100px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  z-index: 9999;
+  animation: ${slideIn} 0.3s ease-out;
+`;
+
+const RecordingDot = styled.div`
+  width: 12px;
+  height: 12px;
+  background: #ef4444;
   border-radius: 50%;
-  background: linear-gradient(135deg, ${({ theme }) => theme.accent} 0%, ${({ theme }) => theme.accentGold} 150%);
+  animation: ${pulse} 1.2s ease-in-out infinite;
+`;
+
+const RecordingTimer = styled.span`
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  min-width: 50px;
+`;
+
+const StopButton = styled.button`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ef4444;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 16px ${({ theme }) => theme.accent}44;
   
   &:hover {
+    background: #dc2626;
     transform: scale(1.05);
-    box-shadow: 0 6px 20px ${({ theme }) => theme.accent}55;
   }
-`;
-
-const MicIconLarge = styled.span`
-  font-size: 2rem;
-`;
-
-const RecordingActive = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-`;
-
-const RecordingIndicator = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-`;
-
-const PulsingDot = styled.div`
-  width: 12px;
-  height: 12px;
-  background: #dc3545;
-  border-radius: 50%;
-  animation: ${pulse} 1.5s ease-in-out infinite;
-`;
-
-const RecordingTime = styled.span`
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-`;
-
-const RecordingHint = styled.p`
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.95rem;
-  color: ${({ theme }) => theme.textSecondary};
-  font-style: italic;
-  margin: 0;
-`;
-
-const StopButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: #dc3545;
-  border: none;
-  border-radius: 10px;
-  color: white;
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
   
-  &:hover {
-    background: #c82333;
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
 const StopIcon = styled.div`
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   background: white;
-  border-radius: 2px;
+  border-radius: 3px;
 `;
 
 const AudioSection = styled.div`
@@ -423,6 +419,7 @@ const AudioSection = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  padding: 1rem 0;
 `;
 
 const AudioPlayer = styled.audio`
