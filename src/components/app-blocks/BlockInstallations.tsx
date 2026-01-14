@@ -112,11 +112,11 @@ const InstallationActions = styled.div`
 const ActionButton = styled.button<{ $variant?: 'danger' }>`
   padding: 0.5rem 0.75rem;
   background: ${({ theme, $variant }) => 
-    $variant === 'danger' ? theme.error + '20' : theme.backgroundAlt};
+    $variant === 'danger' ? '#ef444420' : theme.backgroundAlt};
   border: none;
   border-radius: 8px;
   color: ${({ theme, $variant }) => 
-    $variant === 'danger' ? theme.error : theme.textSecondary};
+    $variant === 'danger' ? '#ef4444' : theme.textSecondary};
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 0.8rem;
   cursor: pointer;
@@ -124,9 +124,9 @@ const ActionButton = styled.button<{ $variant?: 'danger' }>`
   
   &:hover {
     background: ${({ theme, $variant }) => 
-      $variant === 'danger' ? theme.error + '30' : theme.border};
+      $variant === 'danger' ? '#ef444430' : theme.border};
     color: ${({ theme, $variant }) => 
-      $variant === 'danger' ? theme.error : theme.accent};
+      $variant === 'danger' ? '#ef4444' : theme.accent};
   }
 `;
 

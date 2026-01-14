@@ -239,9 +239,9 @@ const SecondaryButton = styled.button`
 
 const ErrorMessage = styled.div`
   padding: 0.75rem 1rem;
-  background: ${({ theme }) => theme.error}20;
+  background: #ef444420;
   border-radius: 8px;
-  color: ${({ theme }) => theme.error};
+  color: #ef4444;
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 0.9rem;
 `;

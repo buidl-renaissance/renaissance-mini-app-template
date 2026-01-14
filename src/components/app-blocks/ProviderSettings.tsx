@@ -151,16 +151,16 @@ const SmallInput = styled(Input)`
 
 const RemoveButton = styled.button`
   padding: 0.5rem;
-  background: ${({ theme }) => theme.error}20;
+  background: #ef444420;
   border: none;
   border-radius: 8px;
-  color: ${({ theme }) => theme.error};
+  color: #ef4444;
   cursor: pointer;
   font-size: 1rem;
   transition: all 0.2s ease;
   
   &:hover {
-    background: ${({ theme }) => theme.error}30;
+    background: #ef444430;
   }
 `;
 
@@ -232,10 +232,10 @@ const SecondaryButton = styled.button`
 
 const DangerButton = styled.button`
   padding: 0.875rem 1.5rem;
-  background: ${({ theme }) => theme.error}15;
-  border: 2px solid ${({ theme }) => theme.error}40;
+  background: #ef444415;
+  border: 2px solid #ef444440;
   border-radius: 10px;
-  color: ${({ theme }) => theme.error};
+  color: #ef4444;
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 0.95rem;
   font-weight: 600;
@@ -243,18 +243,18 @@ const DangerButton = styled.button`
   transition: all 0.2s ease;
   
   &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.error}25;
-    border-color: ${({ theme }) => theme.error};
+    background: #ef444425;
+    border-color: #ef4444;
   }
 `;
 
 const StatusMessage = styled.div<{ $type: 'success' | 'error' }>`
   padding: 0.75rem 1rem;
-  background: ${({ theme, $type }) => 
-    $type === 'success' ? '#22c55e' : theme.error}20;
+  background: ${({ $type }) => 
+    $type === 'success' ? '#22c55e20' : '#ef444420'};
   border-radius: 8px;
-  color: ${({ theme, $type }) => 
-    $type === 'success' ? '#22c55e' : theme.error};
+  color: ${({ $type }) => 
+    $type === 'success' ? '#22c55e' : '#ef4444'};
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 0.9rem;
 `;

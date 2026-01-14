@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import { useAppBlock, RegistryEntryWithProvider, AppBlock } from '@/contexts/AppBlockContext';
 import { RegistryDetail, BlockInstaller } from '@/components/app-blocks';
 import { useUser } from '@/contexts/UserContext';
-import Modal from '@/components/Modal';
+import { Modal } from '@/components/Modal';
 
 const fadeIn = keyframes`
   from {
@@ -266,7 +266,7 @@ export default function ExploreDetailPage() {
       </Container>
       
       {showInstallModal && entry && (
-        <Modal onClose={() => setShowInstallModal(false)}>
+        <Modal isOpen={showInstallModal} onClose={() => setShowInstallModal(false)}>
           <ModalContent>
             {appBlocks.length === 0 ? (
               <NoBlocksMessage>

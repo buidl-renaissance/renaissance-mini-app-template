@@ -140,6 +140,7 @@ The follow-up questions should:
 Return ONLY valid JSON, no markdown or explanation.`;
   }
 
+  try {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
