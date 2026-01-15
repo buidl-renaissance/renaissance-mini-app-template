@@ -825,6 +825,9 @@ const OnboardingPage: React.FC = () => {
   // Draft prompt state
   const [showDraftPrompt, setShowDraftPrompt] = useState(false);
   const [draftInitialized, setDraftInitialized] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
+  const [pendingBlockSubmitted, setPendingBlockSubmitted] = useState(false);
+  const [submittingPendingBlock, setSubmittingPendingBlock] = useState(false);
   
   const blockType = type as string;
   const blockName = name as string;
@@ -868,14 +871,60 @@ const OnboardingPage: React.FC = () => {
 
   // Auto-save when state changes
   useEffect(() => {
-    if (draftInitialized && !showDraftPrompt) {
+    // Don't save while resuming (would overwrite with stale closure values)
+    if (draftInitialized && !showDraftPrompt && !isResuming) {
       saveDraftData();
     }
-  }, [saveDraftData, draftInitialized, showDraftPrompt]);
+  }, [saveDraftData, draftInitialized, showDraftPrompt, isResuming]);
+
+  // Submit pending block to backend when PRD is created
+  const submitPendingBlock = useCallback(async () => {
+    if (!prd || !summary || pendingBlockSubmitted || submittingPendingBlock) {
+      return;
+    }
+
+    setSubmittingPendingBlock(true);
+
+    try {
+      const response = await fetch('/api/pending-blocks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blockName: blockName || summary.name,
+          blockType,
+          prd,
+          summary,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setPendingBlockSubmitted(true);
+        console.log('✅ Pending block submitted:', data.pendingBlock?.id);
+      } else {
+        console.error('Failed to submit pending block:', data.error);
+      }
+    } catch (err) {
+      console.error('Error submitting pending block:', err);
+    } finally {
+      setSubmittingPendingBlock(false);
+    }
+  }, [prd, summary, blockName, blockType, pendingBlockSubmitted, submittingPendingBlock]);
+
+  // Automatically submit pending block when PRD is created
+  useEffect(() => {
+    if (prd && summary && viewState === 'document' && !pendingBlockSubmitted && !isResuming) {
+      submitPendingBlock();
+    }
+  }, [prd, summary, viewState, pendingBlockSubmitted, isResuming, submitPendingBlock]);
 
   // Resume from draft
   const resumeDraft = () => {
     if (draft) {
+      // Set resuming flag to prevent auto-save from overwriting with stale values
+      setIsResuming(true);
+      
       // Map draft stage to view state (skip processing states)
       let resumeViewState: ViewState = 'questions';
       const stage = draft.currentStage;
@@ -898,6 +947,9 @@ const OnboardingPage: React.FC = () => {
       setFollowUpQuestions(draft.followUpQuestions);
       setFollowUpAnswers(draft.followUpAnswers);
       setPrd(draft.prd);
+      
+      // Clear resuming flag after state is set (in next tick to ensure state is updated)
+      setTimeout(() => setIsResuming(false), 0);
     }
     setShowDraftPrompt(false);
   };

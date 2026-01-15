@@ -50,6 +50,13 @@
       "when": 1768389341662,
       "tag": "0006_add-renaissance-user-id",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1768528800000,
+      "tag": "0007_add-pending-blocks",
+      "breakpoints": true
     }
   ]
 }

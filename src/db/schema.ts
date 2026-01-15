@@ -212,3 +212,28 @@ export type ProviderStatus = 'active' | 'deprecated' | 'disabled';
 
 // App Block installation status type
 export type AppBlockInstallationStatus = 'pending' | 'active' | 'expired' | 'revoked' | 'error';
+
+// ============================================
+// Pending App Blocks Table
+// ============================================
+
+// Pending App Blocks - blocks submitted for creation (awaiting admin review/build)
+export const pendingAppBlocks = sqliteTable('pending_app_blocks', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id),
+  blockName: text('block_name').notNull(),
+  blockType: text('block_type').notNull(),
+  prdData: text('prd_data').notNull(), // JSON string of ProductRequirementsDocument
+  summaryData: text('summary_data'), // JSON string of BlockSummary
+  status: text('status').notNull().default('pending'), // pending, approved, rejected, building, completed
+  notificationSent: integer('notification_sent', { mode: 'boolean' }).default(false).notNull(),
+  adminNotes: text('admin_notes'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+});
+
+export type PendingAppBlock = typeof pendingAppBlocks.$inferSelect;
+export type NewPendingAppBlock = typeof pendingAppBlocks.$inferInsert;
+
+// Pending block status type
+export type PendingBlockStatus = 'pending' | 'approved' | 'rejected' | 'building' | 'completed';
