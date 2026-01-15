@@ -13,31 +13,6 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const NOTIFICATION_EMAIL = 'john@dpop.tech';
 
-interface PRDData {
-  title: string;
-  version: string;
-  createdAt: string;
-  overview: {
-    name: string;
-    tagline: string;
-    description: string;
-    problemStatement: string;
-  };
-  targetAudience: {
-    primary: string;
-    demographics: string[];
-    painPoints: string[];
-  };
-  features: {
-    core: { name: string; description: string; priority: string }[];
-    future: string[];
-  };
-  technicalRequirements: string[];
-  successMetrics: string[];
-  timeline: { phase: string; description: string }[];
-  risks: string[];
-}
-
 interface SummaryData {
   name: string;
   tagline: string;
@@ -45,6 +20,12 @@ interface SummaryData {
   targetAudience: string;
   coreFeatures: string[];
   nextSteps: string[];
+}
+
+interface ProcessedAnswer {
+  question: string;
+  answer: string;
+  keyPoints: string[];
 }
 
 type ResponseData = {
@@ -72,13 +53,11 @@ async function getCurrentUser(req: NextApiRequest) {
  */
 async function sendNotificationEmail(
   pendingBlock: PendingAppBlock,
-  prd: PRDData,
-  summary: SummaryData | null,
+  summary: SummaryData,
+  processedAnswers: ProcessedAnswer[],
   userName: string
 ): Promise<boolean> {
   try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://your-app.builddetroit.xyz';
-    
     const emailHtml = `
 <!DOCTYPE html>
 <html>
@@ -93,13 +72,12 @@ async function sendNotificationEmail(
     .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #6b7280; margin-bottom: 8px; }
     .feature { background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #a78bfa; }
     .feature-name { font-weight: 600; }
-    .feature-desc { font-size: 14px; color: #6b7280; }
-    .priority { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 100px; margin-left: 8px; }
-    .priority-must { background: #a78bfa33; color: #7c3aed; }
-    .priority-should { background: #f5d76433; color: #b8860b; }
+    .answer-card { background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #e5e7eb; }
+    .answer-question { font-weight: 600; font-size: 13px; color: #374151; margin-bottom: 4px; }
+    .answer-text { font-size: 14px; color: #4b5563; }
+    .key-points { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .key-point { font-size: 11px; padding: 2px 8px; background: #a78bfa22; color: #7c3aed; border-radius: 100px; }
     .meta { font-size: 14px; color: #6b7280; }
-    .cta { text-align: center; margin-top: 24px; }
-    .button { display: inline-block; background: #a78bfa; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -110,71 +88,53 @@ async function sendNotificationEmail(
     <div class="content">
       <div class="section">
         <div class="section-title">Block Details</div>
-        <p><strong>${prd.overview.name}</strong></p>
-        <p style="font-style: italic; color: #7c3aed;">${prd.overview.tagline}</p>
+        <p><strong>${summary.name}</strong></p>
+        <p style="font-style: italic; color: #7c3aed;">${summary.tagline}</p>
         <p class="meta">Type: ${pendingBlock.blockType} • Submitted by: ${userName}</p>
       </div>
 
       <div class="section">
-        <div class="section-title">Problem Statement</div>
-        <p>${prd.overview.problemStatement}</p>
-      </div>
-
-      <div class="section">
         <div class="section-title">Description</div>
-        <p>${prd.overview.description}</p>
+        <p>${summary.description}</p>
       </div>
 
       <div class="section">
         <div class="section-title">Target Audience</div>
-        <p><strong>${prd.targetAudience.primary}</strong></p>
-        <p class="meta">Demographics: ${prd.targetAudience.demographics.join(', ')}</p>
-        <p class="meta">Pain Points: ${prd.targetAudience.painPoints.join(', ')}</p>
+        <p>${summary.targetAudience}</p>
       </div>
 
       <div class="section">
         <div class="section-title">Core Features</div>
-        ${prd.features.core.map(f => `
+        ${summary.coreFeatures.map(f => `
           <div class="feature">
-            <span class="feature-name">${f.name}</span>
-            <span class="priority priority-${f.priority === 'must-have' ? 'must' : 'should'}">${f.priority}</span>
-            <div class="feature-desc">${f.description}</div>
+            <span class="feature-name">✦ ${f}</span>
           </div>
         `).join('')}
       </div>
 
-      ${prd.features.future.length > 0 ? `
       <div class="section">
-        <div class="section-title">Future Features</div>
-        <p class="meta">${prd.features.future.join(' • ')}</p>
+        <div class="section-title">Next Steps</div>
+        <ol style="margin: 0; padding-left: 20px;">
+          ${summary.nextSteps.map(s => `<li>${s}</li>`).join('')}
+        </ol>
+      </div>
+
+      ${processedAnswers.length > 0 ? `
+      <div class="section">
+        <div class="section-title">User's Answers</div>
+        ${processedAnswers.map(a => `
+          <div class="answer-card">
+            <div class="answer-question">${a.question}</div>
+            <div class="answer-text">${a.answer}</div>
+            ${a.keyPoints.length > 0 ? `
+              <div class="key-points">
+                ${a.keyPoints.map(kp => `<span class="key-point">${kp}</span>`).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
       </div>
       ` : ''}
-
-      <div class="section">
-        <div class="section-title">Technical Requirements</div>
-        <ul>
-          ${prd.technicalRequirements.map(r => `<li>${r}</li>`).join('')}
-        </ul>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Success Metrics</div>
-        <ul>
-          ${prd.successMetrics.map(m => `<li>${m}</li>`).join('')}
-        </ul>
-      </div>
-
-      <div class="section">
-        <div class="section-title">Timeline</div>
-        ${prd.timeline.map(t => `<p><strong>${t.phase}:</strong> ${t.description}</p>`).join('')}
-      </div>
-
-      <div class="section">
-        <div class="section-title">Risks & Challenges</div>
-        <ul>
-          ${prd.risks.map(r => `<li>⚠️ ${r}</li>`).join('')}
-        </ul>
-      </div>
 
       <div class="meta" style="text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
         Block ID: ${pendingBlock.id}<br>
@@ -189,7 +149,7 @@ async function sendNotificationEmail(
     const { error } = await resend.emails.send({
       from: 'Renaissance City <noreply@builddetroit.xyz>',
       to: [NOTIFICATION_EMAIL],
-      subject: `🏗️ New Block Submission: ${prd.overview.name}`,
+      subject: `🏗️ New Block Submission: ${summary.name}`,
       html: emailHtml,
     });
 
@@ -227,11 +187,11 @@ export default async function handler(
       }
 
       case 'POST': {
-        const { blockName, blockType, prd, summary } = req.body as {
+        const { blockName, blockType, summary, processedAnswers } = req.body as {
           blockName: string;
           blockType: string;
-          prd: PRDData;
-          summary?: SummaryData;
+          summary: SummaryData;
+          processedAnswers?: ProcessedAnswer[];
         };
 
         // Validate required fields
@@ -243,8 +203,8 @@ export default async function handler(
           return res.status(400).json({ error: 'Block type is required' });
         }
 
-        if (!prd || typeof prd !== 'object') {
-          return res.status(400).json({ error: 'PRD data is required' });
+        if (!summary || typeof summary !== 'object') {
+          return res.status(400).json({ error: 'Summary data is required' });
         }
 
         // Check for duplicate pending submissions
@@ -255,13 +215,13 @@ export default async function handler(
           });
         }
 
-        // Create the pending block
+        // Create the pending block - store summary and answers together
         const pendingBlock = await createPendingBlock({
           userId: user.id,
           blockName: blockName.trim(),
           blockType,
-          prdData: JSON.stringify(prd),
-          summaryData: summary ? JSON.stringify(summary) : null,
+          prdData: JSON.stringify({ summary, processedAnswers: processedAnswers || [] }),
+          summaryData: JSON.stringify(summary),
           status: 'pending',
           notificationSent: false,
         });
@@ -274,7 +234,12 @@ export default async function handler(
 
         // Send notification email
         const userName = user.displayName || user.username || 'Anonymous User';
-        const emailSent = await sendNotificationEmail(pendingBlock, prd, summary || null, userName);
+        const emailSent = await sendNotificationEmail(
+          pendingBlock, 
+          summary, 
+          processedAnswers || [],
+          userName
+        );
         
         if (emailSent) {
           await markNotificationSent(pendingBlock.id);

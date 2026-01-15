@@ -877,9 +877,9 @@ const OnboardingPage: React.FC = () => {
     }
   }, [saveDraftData, draftInitialized, showDraftPrompt, isResuming]);
 
-  // Submit pending block to backend when PRD is created
+  // Submit pending block to backend after initial questions are processed
   const submitPendingBlock = useCallback(async () => {
-    if (!prd || !summary || pendingBlockSubmitted || submittingPendingBlock) {
+    if (!summary || pendingBlockSubmitted || submittingPendingBlock) {
       return;
     }
 
@@ -892,8 +892,8 @@ const OnboardingPage: React.FC = () => {
         body: JSON.stringify({
           blockName: blockName || summary.name,
           blockType,
-          prd,
           summary,
+          processedAnswers,
         }),
       });
 
@@ -910,14 +910,14 @@ const OnboardingPage: React.FC = () => {
     } finally {
       setSubmittingPendingBlock(false);
     }
-  }, [prd, summary, blockName, blockType, pendingBlockSubmitted, submittingPendingBlock]);
+  }, [summary, blockName, blockType, processedAnswers, pendingBlockSubmitted, submittingPendingBlock]);
 
-  // Automatically submit pending block when PRD is created
+  // Automatically submit pending block after initial questions are processed (when summary is created)
   useEffect(() => {
-    if (prd && summary && viewState === 'document' && !pendingBlockSubmitted && !isResuming) {
+    if (summary && processedAnswers.length > 0 && !pendingBlockSubmitted && !isResuming) {
       submitPendingBlock();
     }
-  }, [prd, summary, viewState, pendingBlockSubmitted, isResuming, submitPendingBlock]);
+  }, [summary, processedAnswers, pendingBlockSubmitted, isResuming, submitPendingBlock]);
 
   // Resume from draft
   const resumeDraft = () => {
