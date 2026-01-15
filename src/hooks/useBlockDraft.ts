@@ -140,11 +140,13 @@ export function useBlockDraft() {
         const parsedDraft: BlockDraft = JSON.parse(saved);
         setDraft(parsedDraft);
         // Check if there's meaningful progress
-        const hasProgress = parsedDraft.blockName || 
+        const hasProgress = !!(
+          parsedDraft.blockName || 
           parsedDraft.blockType || 
           parsedDraft.transcript || 
           parsedDraft.processedAnswers.length > 0 ||
-          parsedDraft.selectedConnectors.length > 0;
+          parsedDraft.selectedConnectors.length > 0
+        );
         setHasDraft(hasProgress);
       }
     } catch (e) {
