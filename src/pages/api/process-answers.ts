@@ -214,47 +214,52 @@ Please analyze this and return a JSON object with:
    - "coreFeatures": array of 3-5 core features or capabilities
    - "nextSteps": array of 2-3 recommended next steps to build this
 
-3. "followUpQuestions" - an array of 4-6 follow-up questions to clarify direction, each with:
+3. "followUpQuestions" - an array of ONLY the follow-up questions needed to clarify their specific vision. Each question must:
    - "id": a unique identifier like "q1", "q2", etc.
-   - "question": the clarifying question (be specific and actionable)
+   - "question": a specific, actionable question tailored to THIS app block
    - "context": brief explanation of why this matters for building their App Block
    - "type": one of "single" (pick one), "multi" (pick multiple), or "open" (free text)
-   - "options": array of 2-5 suggested answers (REQUIRED for "single" and "multi" types, omit for "open")
+   - "options": array of suggested answers (REQUIRED for "single" and "multi" types, omit for "open")
 
 CRITICAL GUIDELINES FOR FOLLOW-UP QUESTIONS:
 
-Remember you are helping build an APP BLOCK with these characteristics:
-- Self-contained: Can work independently
-- Composable: Can connect to other App Blocks and shared systems
-- Rooted in reality: Tied to real people, places, or activities
-- Claimable: Has an owner/steward
-- Evolvable: Starts simple, grows over time
+QUALITY OVER QUANTITY:
+- Only include questions that will meaningfully impact how THIS specific App Block is built
+- Skip questions if the user already provided sufficient detail
+- Aim for 2-5 questions total - fewer is better if their answers were comprehensive
 
-Question Type Distribution (MUST follow):
-- At least 2-3 questions MUST be "single" type (pick one from options)
-- At least 1-2 questions MUST be "multi" type (pick multiple)
-- Maximum 1 question can be "open" type
+SINGLE-CHOICE ("single" type) RULES:
+- Options MUST be mutually exclusive - picking one rules out the others
+- Frame as "What is most important?" or "Which approach fits best?" to force prioritization
+- 3-4 options is ideal - too many defeats the purpose
+- Bad: ["Users", "Events", "Content", "All of the above"] - not mutually exclusive
+- Good: ["Prioritize user growth first", "Prioritize content quality first", "Prioritize community engagement first"]
 
-DO NOT generate follow-up questions that:
-- Repeat or closely resemble the original questions listed above
-- Ask for information the user already clearly provided in their answers
-- Are too similar to each other (each question should explore a DISTINCT aspect)
-- Don't contribute meaningful new information for building the App Block
+MULTI-CHOICE ("multi" type) RULES:
+- Use for features, integrations, or characteristics where multiple can apply
+- Options should be distinct capabilities or features
+- Good for: "Which integrations matter most?" or "What features are must-haves for launch?"
 
-DO generate follow-up questions that explore:
-- COMPOSABILITY: How should this App Block connect with others? (events, identity, rewards, other blocks)
-- REAL-WORLD CONNECTION: What in-person activities or places does this support?
-- OWNERSHIP: Who stewards this? How do they manage and curate it?
-- EVOLUTION: What's the MVP vs. future vision? How will it grow?
-- SCOPE: Local neighborhood, citywide, or beyond?
-- MONETIZATION: Free, paid, community-supported, or something else?
-- USER MANAGEMENT: How do people join, participate, and build reputation?
+OPEN-TEXT ("open" type) RULES:
+- ONLY use for questions that are SPECIFIC to this App Block's unique concept
+- Must ask for concrete details that couldn't be answered with options
+- Bad: "What makes your app block unique?" (too generic, any app could be asked this)
+- Bad: "Describe your target audience" (already covered in initial questions)
+- Good: "What specific ${blockType}-related data or content will users create?" (specific to their concept)
+- Good: "Describe a typical session - what does a user do from start to finish?"
 
-Good examples of App Block-specific questions:
-- "How should this App Block connect to others?" with options ["Standalone only", "Share events calendar", "Share user identity", "Full ecosystem integration"]
-- "What real-world activity triggers use of this App Block?" with options based on their ${blockType}
-- "Who owns and curates this App Block?" with options ["Individual creator", "Small team", "Community collective", "Organization"]
-- "What's your launch scope?" with options ["Single neighborhood", "Citywide Detroit", "Multiple cities", "Global"]
+DO NOT ASK:
+- Questions already answered in the transcript
+- Generic questions that apply to any app (monetization, team size, timeline - unless directly relevant)
+- Broad philosophical questions ("What problem are you solving?")
+- Questions where the answer is obvious from their description
+
+FOCUS QUESTIONS ON:
+- Clarifying ambiguous parts of their specific concept
+- Technical decisions that affect how THIS app block works
+- User flows specific to their ${blockType}
+- Data or content structure unique to their idea
+- Integration points that make sense for their use case
 
 Return ONLY valid JSON, no markdown or explanation.`;
   }

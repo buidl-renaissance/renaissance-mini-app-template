@@ -809,11 +809,33 @@ const OnboardingPage: React.FC = () => {
 
   // Create app block after initial questions are processed
   const submitAppBlock = useCallback(async () => {
-    if (!summary || blockSubmitted || submittingBlock) {
+    // Validate all required data is present
+    if (!summary) {
+      console.log('⏳ submitAppBlock: waiting for summary');
+      return;
+    }
+    if (!blockType) {
+      console.log('⏳ submitAppBlock: waiting for blockType (router not ready)');
+      return;
+    }
+    if (blockSubmitted) {
+      console.log('⏳ submitAppBlock: already submitted');
+      return;
+    }
+    if (submittingBlock) {
+      console.log('⏳ submitAppBlock: already submitting');
       return;
     }
 
+    console.log('🚀 submitAppBlock: Creating app block...', {
+      blockName: blockName || summary.name,
+      blockType,
+      hasSummary: !!summary,
+      answersCount: processedAnswers.length,
+    });
+
     setSubmittingBlock(true);
+    setError(null);
 
     try {
       const response = await fetch('/api/pending-blocks', {
@@ -841,10 +863,12 @@ const OnboardingPage: React.FC = () => {
           { shallow: true }
         );
       } else {
-        console.error('Failed to create app block:', data.error);
+        console.error('❌ Failed to create app block:', data.error);
+        setError(data.error || 'Failed to save your app block');
       }
     } catch (err) {
-      console.error('Error creating app block:', err);
+      console.error('❌ Error creating app block:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save your app block');
     } finally {
       setSubmittingBlock(false);
     }
@@ -852,10 +876,33 @@ const OnboardingPage: React.FC = () => {
 
   // Automatically create app block after initial questions are processed
   useEffect(() => {
-    if (summary && processedAnswers.length > 0 && !blockSubmitted && !blockId) {
-      submitAppBlock();
+    // Wait for router to be ready and all required data to be present
+    if (!router.isReady) {
+      console.log('⏳ useEffect: router not ready');
+      return;
     }
-  }, [summary, processedAnswers, blockSubmitted, blockId, submitAppBlock]);
+    if (!summary) {
+      return;
+    }
+    if (processedAnswers.length === 0) {
+      console.log('⏳ useEffect: no processed answers yet');
+      return;
+    }
+    if (blockSubmitted) {
+      return;
+    }
+    if (blockId) {
+      console.log('⏳ useEffect: blockId exists, skipping auto-create');
+      return;
+    }
+    if (!blockType) {
+      console.log('⏳ useEffect: blockType not available');
+      return;
+    }
+
+    console.log('📝 useEffect: triggering submitAppBlock');
+    submitAppBlock();
+  }, [router.isReady, summary, processedAnswers, blockSubmitted, blockId, blockType, submitAppBlock]);
 
   // Update block progress when PRD is generated
   useEffect(() => {
@@ -1053,9 +1100,8 @@ const OnboardingPage: React.FC = () => {
   const handleContinue = () => {
     if (appBlockId) {
       router.push(`/app-blocks/${appBlockId}`);
-    } else {
-      router.push('/app-blocks/new');
     }
+    // Don't fall back to /app-blocks/new - wait for block to be created
   };
 
   const handleReRecord = () => {
@@ -1224,6 +1270,44 @@ const OnboardingPage: React.FC = () => {
                     a.skipped || (Array.isArray(a.answer) ? a.answer.length > 0 : a.answer)
                   ).length} of {followUpQuestions.length} questions answered
                 </ProgressText>
+                {/* Draft status indicator */}
+                {submittingBlock && (
+                  <ProgressText style={{ color: 'var(--accent)', marginBottom: '0.5rem' }}>
+                    Saving your draft...
+                  </ProgressText>
+                )}
+                {blockSubmitted && appBlockId && (
+                  <ProgressText style={{ color: 'var(--accent)', marginBottom: '0.5rem' }}>
+                    ✓ Draft saved
+                  </ProgressText>
+                )}
+                {!blockSubmitted && !submittingBlock && summary && !error && (
+                  <ProgressText style={{ color: '#f59e0b', marginBottom: '0.5rem' }}>
+                    Waiting to save draft...
+                  </ProgressText>
+                )}
+                {error && (
+                  <ErrorMessage>
+                    {error}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setError(null);
+                        submitAppBlock();
+                      }}
+                      style={{
+                        marginLeft: '0.5rem',
+                        background: 'none',
+                        border: 'none',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        color: 'inherit',
+                      }}
+                    >
+                      Retry
+                    </button>
+                  </ErrorMessage>
+                )}
                 <Button 
                   $primary 
                   onClick={handleSubmitFollowUps}
@@ -1231,7 +1315,6 @@ const OnboardingPage: React.FC = () => {
                 >
                   Generate Requirements →
                 </Button>
-                {error && <ErrorMessage>{error}</ErrorMessage>}
               </SubmitSection>
             </QuestionsCard>
           </>
@@ -1371,8 +1454,12 @@ const OnboardingPage: React.FC = () => {
               <Button onClick={handleReRecord}>
                 Start Over
               </Button>
-              <Button $primary onClick={handleContinue}>
-                Create Block →
+              <Button 
+                $primary 
+                onClick={handleContinue}
+                disabled={!appBlockId || submittingBlock}
+              >
+                {submittingBlock ? 'Creating...' : 'Continue →'}
               </Button>
             </ActionsRow>
           </>
