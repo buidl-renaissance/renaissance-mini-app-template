@@ -30,6 +30,12 @@ const V1_CONNECTORS = [
     description: 'Collaborative tasks, projects, and team coordination',
     iconUrl: '/connectors/collab.svg',
   },
+  {
+    id: 'people',
+    name: 'Renaissance People',
+    description: 'Bring your connections and social graph to any app block',
+    iconUrl: '/connectors/people.svg',
+  },
 ];
 
 const V1_SCOPES = [
@@ -45,6 +51,14 @@ const V1_SCOPES = [
   { id: 'collab.tasks.create', connectorId: 'collab', name: 'collab.tasks.create', description: 'Create new tasks and projects', requiredRole: 'member' },
   { id: 'collab.tasks.assign', connectorId: 'collab', name: 'collab.tasks.assign', description: 'Assign tasks to team members', requiredRole: 'creator' },
   { id: 'collab.projects.manage', connectorId: 'collab', name: 'collab.projects.manage', description: 'Create and manage projects', requiredRole: 'organizer' },
+  
+  // People scopes
+  { id: 'people.connections.read', connectorId: 'people', name: 'people.connections.read', description: 'View your connections and their public profiles', requiredRole: 'visitor' },
+  { id: 'people.connections.invite', connectorId: 'people', name: 'people.connections.invite', description: 'Send connection invites to other users', requiredRole: 'member' },
+  { id: 'people.connections.manage', connectorId: 'people', name: 'people.connections.manage', description: 'Accept, reject, and remove connections', requiredRole: 'member' },
+  { id: 'people.directory.search', connectorId: 'people', name: 'people.directory.search', description: 'Search the Renaissance City user directory', requiredRole: 'member' },
+  { id: 'people.groups.read', connectorId: 'people', name: 'people.groups.read', description: 'View connection groups and circles', requiredRole: 'member' },
+  { id: 'people.groups.manage', connectorId: 'people', name: 'people.groups.manage', description: 'Create and manage connection groups', requiredRole: 'member' },
 ];
 
 const V1_RECIPES = [
@@ -99,6 +113,32 @@ const V1_RECIPES = [
     scopes: JSON.stringify(['collab.tasks.read', 'collab.tasks.create', 'collab.tasks.assign', 'collab.projects.manage']),
     uiModules: JSON.stringify(['TaskBoard', 'TaskList', 'TaskForm', 'ProjectSettings', 'TeamManagement']),
   },
+  
+  // People recipes
+  {
+    id: 'people-view',
+    connectorId: 'people',
+    name: 'View Connections',
+    description: 'Display your connections and their profiles',
+    scopes: JSON.stringify(['people.connections.read']),
+    uiModules: JSON.stringify(['ConnectionsList', 'ProfileCard']),
+  },
+  {
+    id: 'people-network',
+    connectorId: 'people',
+    name: 'Build Your Network',
+    description: 'Find and invite new connections',
+    scopes: JSON.stringify(['people.connections.read', 'people.connections.invite', 'people.directory.search']),
+    uiModules: JSON.stringify(['ConnectionsList', 'ProfileCard', 'UserSearch', 'InviteForm']),
+  },
+  {
+    id: 'people-manage',
+    connectorId: 'people',
+    name: 'Manage Connections',
+    description: 'Full connection management with groups and circles',
+    scopes: JSON.stringify(['people.connections.read', 'people.connections.invite', 'people.connections.manage', 'people.directory.search', 'people.groups.read', 'people.groups.manage']),
+    uiModules: JSON.stringify(['ConnectionsList', 'ProfileCard', 'UserSearch', 'InviteForm', 'ConnectionGroups', 'GroupEditor']),
+  },
 ];
 
 // First-party App Blocks that can act as providers
@@ -135,6 +175,24 @@ const FIRST_PARTY_PROVIDERS = [
       { name: 'collab.projects.manage', description: 'Create and manage projects', isPublicRead: false, requiredRole: 'organizer' },
     ],
     tags: ['official', 'tasks', 'projects', 'teamwork'],
+  },
+  {
+    id: 'block_people',
+    name: 'Renaissance People',
+    slug: 'people',
+    description: 'The social heart of Renaissance City. Connect with other users, build your network, and bring your connections to any app block.',
+    category: 'community' as const,
+    iconUrl: '/connectors/people.svg',
+    baseApiUrl: '/api/districts/people',
+    scopes: [
+      { name: 'people.connections.read', description: 'View your connections and their public profiles', isPublicRead: false, requiredRole: null },
+      { name: 'people.connections.invite', description: 'Send connection invites to other users', isPublicRead: false, requiredRole: 'member' },
+      { name: 'people.connections.manage', description: 'Accept, reject, and remove connections', isPublicRead: false, requiredRole: 'member' },
+      { name: 'people.directory.search', description: 'Search the Renaissance City user directory', isPublicRead: false, requiredRole: 'member' },
+      { name: 'people.groups.read', description: 'View connection groups and circles', isPublicRead: false, requiredRole: 'member' },
+      { name: 'people.groups.manage', description: 'Create and manage connection groups', isPublicRead: false, requiredRole: 'member' },
+    ],
+    tags: ['official', 'connections', 'network', 'social', 'community'],
   },
 ];
 
