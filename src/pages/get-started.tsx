@@ -94,7 +94,7 @@ const ProfileImageContainer = styled(Link)`
     border-radius: 50%;
     border: 1px solid ${({ theme }) => theme.accentGold}40;
   }
-
+  
   &:hover {
     transform: scale(1.05);
     border-color: ${({ theme }) => theme.accent};
@@ -403,7 +403,7 @@ const GetStartedPage: React.FC = () => {
               <BlockImage src="/app-block.png" alt="Your Block" />
             </BlockImageContainer>
 
-            <ContentSection>
+        <ContentSection>
               <BlockTitle>Name Your Block</BlockTitle>
               <Divider />
               <BlockText>
@@ -432,7 +432,7 @@ const GetStartedPage: React.FC = () => {
                   Continue →
                 </ContinueButton>
               </NameInputSection>
-            </ContentSection>
+        </ContentSection>
           </>
         ) : (
           // Step 2: Choose what to build

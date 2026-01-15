@@ -254,7 +254,7 @@ const BlockCard = styled(Link)<{ $index: number }>`
   text-decoration: none;
   transition: all 0.2s ease;
   animation: ${fadeIn} 0.4s ease-out ${({ $index }) => $index * 0.05}s both;
-  
+
   &:hover {
     border-color: ${({ theme }) => theme.accent};
     transform: translateX(4px);
@@ -419,11 +419,11 @@ const DashboardPage: React.FC = () => {
 
         <ContentSection>
           <BlockTitle>Your Blocks</BlockTitle>
-          <Divider />
-          <BlockText>
+              <Divider />
+              <BlockText>
             Building the renaissance, one block at a time.
-          </BlockText>
-          
+              </BlockText>
+              
           <BlocksListContainer>
             {appBlocks.slice(0, 5).map((block, index) => (
               <BlockCard 

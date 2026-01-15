@@ -1,4 +1,5 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import styled, { keyframes, createGlobalStyle } from "styled-components";
 
 interface VoiceTranscriberProps {
@@ -21,10 +22,16 @@ const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Setup portal container on mount (SSR safe)
+  useEffect(() => {
+    setPortalContainer(document.body);
+  }, []);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -179,19 +186,20 @@ const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
       {/* Error message */}
       {error && !showReviewModal && <InlineError>{error}</InlineError>}
 
-      {/* Floating Recording Indicator */}
-      {isRecording && (
+      {/* Floating Recording Indicator - rendered via portal */}
+      {portalContainer && isRecording && createPortal(
         <FloatingRecorder>
           <RecordingDot />
           <RecordingTimer>{formatTime(recordingTime)}</RecordingTimer>
           <StopButton onClick={stopRecording} type="button">
             <StopIcon />
           </StopButton>
-        </FloatingRecorder>
+        </FloatingRecorder>,
+        portalContainer
       )}
 
-      {/* Review Modal - only shown after recording completes */}
-      {showReviewModal && (
+      {/* Review Modal - rendered via portal to ensure fixed positioning works */}
+      {portalContainer && showReviewModal && createPortal(
         <ReviewModalOverlay onClick={(e) => e.target === e.currentTarget && handleCloseModal()}>
           <ReviewModalContent>
             <ReviewModalHeader>
@@ -219,11 +227,11 @@ const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
                 <TextArea
                   value={transcript}
                   onChange={(e) => setTranscript(e.target.value)}
-                  rows={5}
+                  rows={4}
                   placeholder={placeholder}
                 />
                 <TranscriptHint>
-                  You can edit the transcript before processing
+                  Edit if needed, then tap Process to continue
                 </TranscriptHint>
               </TranscriptSection>
             </ReviewModalBody>
@@ -240,7 +248,8 @@ const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({
               </PrimaryButton>
             </ReviewModalFooter>
           </ReviewModalContent>
-        </ReviewModalOverlay>
+        </ReviewModalOverlay>,
+        portalContainer
       )}
     </>
   );
@@ -489,36 +498,38 @@ const ErrorMessage = styled.div`
 // Custom Review Modal - centered on screen
 const ReviewModalOverlay = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
   padding: 1rem;
-  animation: ${slideIn} 0.2s ease-out;
+  box-sizing: border-box;
+  overflow: hidden;
 `;
 
 const ReviewModalContent = styled.div`
   background: ${({ theme }) => theme.surface};
   border-radius: 16px;
-  width: 100%;
-  max-width: 480px;
-  max-height: 85vh;
+  width: calc(100% - 2rem);
+  max-width: 420px;
+  max-height: 70vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  margin: auto;
 `;
 
 const ReviewModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid ${({ theme }) => theme.border};
   flex-shrink: 0;
 `;
@@ -547,17 +558,18 @@ const ReviewCloseButton = styled.button`
 `;
 
 const ReviewModalBody = styled.div`
-  padding: 1.5rem;
+  padding: 1.25rem;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 `;
 
 const ReviewModalFooter = styled.div`
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
   border-top: 1px solid ${({ theme }) => theme.border};
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-shrink: 0;
 `;
 
@@ -607,17 +619,19 @@ const PrimaryButton = styled.button`
 
 const TextArea = styled.textarea`
   width: 100%;
-  padding: 1rem;
+  padding: 0.875rem;
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 10px;
   background: ${({ theme }) => theme.background};
   color: ${({ theme }) => theme.text};
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1rem;
-  line-height: 1.6;
-  resize: vertical;
-  min-height: 120px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: none;
+  min-height: 100px;
+  max-height: 150px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
   
   &::placeholder {
     color: ${({ theme }) => theme.textSecondary};
