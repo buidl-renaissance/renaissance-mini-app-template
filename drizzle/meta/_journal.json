@@ -71,6 +71,13 @@
       "when": 1768531200000,
       "tag": "0009_add-app-block-status",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1768492542103,
+      "tag": "0010_curious_jazinda",
+      "breakpoints": true
     }
   ]
 }
