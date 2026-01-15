@@ -3,6 +3,7 @@ export { ConnectorPicker } from './ConnectorPicker';
 export { RecipeSelector } from './RecipeSelector';
 export { ConsentScreen } from './ConsentScreen';
 export { ConnectorHealth } from './ConnectorHealth';
+export { IconEditModal } from './IconEditModal';
 
 // Registry components
 export { RegistryBrowser } from './RegistryBrowser';

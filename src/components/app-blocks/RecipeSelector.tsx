@@ -157,8 +157,6 @@ const CustomOption = styled.button<{ $selected: boolean }>`
 const iconMap: Record<string, string> = {
   events: '📅',
   collab: '🤝',
-  djq: '🎵',
-  gamenight: '🎮',
 };
 
 interface RecipeSelectorProps {

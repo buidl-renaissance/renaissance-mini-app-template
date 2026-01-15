@@ -297,7 +297,7 @@ Please analyze ALL of this and return a JSON object with:
    - "nextSteps": array of 2-3 concrete next steps
 
 3. "prd" - a formal Product Requirements Document object:
-   - "title": "Product Requirements: ${previousSummary.name}"
+   - "title": "${previousSummary.name}"
    - "version": "1.0"
    - "createdAt": "${new Date().toISOString().split('T')[0]}"
    - "overview": {

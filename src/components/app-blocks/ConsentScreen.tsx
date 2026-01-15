@@ -234,8 +234,6 @@ const Button = styled.button<{ $primary?: boolean }>`
 const iconMap: Record<string, string> = {
   events: '📅',
   collab: '🤝',
-  djq: '🎵',
-  gamenight: '🎮',
 };
 
 interface ConsentScreenProps {

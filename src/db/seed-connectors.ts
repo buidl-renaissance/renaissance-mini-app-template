@@ -30,18 +30,6 @@ const V1_CONNECTORS = [
     description: 'Collaborative tasks, projects, and team coordination',
     iconUrl: '/connectors/collab.svg',
   },
-  {
-    id: 'djq',
-    name: 'DJQ',
-    description: 'Music queues, DJ sessions, and live audio experiences',
-    iconUrl: '/connectors/djq.svg',
-  },
-  {
-    id: 'gamenight',
-    name: 'Game Night',
-    description: 'Multiplayer games, tournaments, and competitive events',
-    iconUrl: '/connectors/gamenight.svg',
-  },
 ];
 
 const V1_SCOPES = [
@@ -57,18 +45,6 @@ const V1_SCOPES = [
   { id: 'collab.tasks.create', connectorId: 'collab', name: 'collab.tasks.create', description: 'Create new tasks and projects', requiredRole: 'member' },
   { id: 'collab.tasks.assign', connectorId: 'collab', name: 'collab.tasks.assign', description: 'Assign tasks to team members', requiredRole: 'creator' },
   { id: 'collab.projects.manage', connectorId: 'collab', name: 'collab.projects.manage', description: 'Create and manage projects', requiredRole: 'organizer' },
-  
-  // DJQ scopes
-  { id: 'djq.queue.read', connectorId: 'djq', name: 'djq.queue.read', description: 'View the current music queue', requiredRole: 'visitor' },
-  { id: 'djq.queue.write', connectorId: 'djq', name: 'djq.queue.write', description: 'Add songs to the queue', requiredRole: 'member' },
-  { id: 'djq.queue.manage', connectorId: 'djq', name: 'djq.queue.manage', description: 'Reorder, skip, or remove songs', requiredRole: 'organizer' },
-  { id: 'djq.session.create', connectorId: 'djq', name: 'djq.session.create', description: 'Start new DJ sessions', requiredRole: 'creator' },
-  
-  // Game Night scopes
-  { id: 'gamenight.matches.read', connectorId: 'gamenight', name: 'gamenight.matches.read', description: 'View matches and tournaments', requiredRole: 'visitor' },
-  { id: 'gamenight.matches.join', connectorId: 'gamenight', name: 'gamenight.matches.join', description: 'Join available matches', requiredRole: 'member' },
-  { id: 'gamenight.results.submit', connectorId: 'gamenight', name: 'gamenight.results.submit', description: 'Submit match results', requiredRole: 'member' },
-  { id: 'gamenight.tournaments.create', connectorId: 'gamenight', name: 'gamenight.tournaments.create', description: 'Create new tournaments', requiredRole: 'organizer' },
 ];
 
 const V1_RECIPES = [
@@ -123,58 +99,6 @@ const V1_RECIPES = [
     scopes: JSON.stringify(['collab.tasks.read', 'collab.tasks.create', 'collab.tasks.assign', 'collab.projects.manage']),
     uiModules: JSON.stringify(['TaskBoard', 'TaskList', 'TaskForm', 'ProjectSettings', 'TeamManagement']),
   },
-  
-  // DJQ recipes
-  {
-    id: 'djq-view',
-    connectorId: 'djq',
-    name: 'View Live Queue',
-    description: 'Display the current music queue',
-    scopes: JSON.stringify(['djq.queue.read']),
-    uiModules: JSON.stringify(['QueueDisplay', 'NowPlaying']),
-  },
-  {
-    id: 'djq-request',
-    connectorId: 'djq',
-    name: 'Add to Queue',
-    description: 'Let users request songs',
-    scopes: JSON.stringify(['djq.queue.read', 'djq.queue.write']),
-    uiModules: JSON.stringify(['QueueDisplay', 'NowPlaying', 'SongSearch', 'RequestForm']),
-  },
-  {
-    id: 'djq-dj',
-    connectorId: 'djq',
-    name: 'DJ Controls',
-    description: 'Full DJ session management',
-    scopes: JSON.stringify(['djq.queue.read', 'djq.queue.write', 'djq.queue.manage', 'djq.session.create']),
-    uiModules: JSON.stringify(['QueueDisplay', 'NowPlaying', 'SongSearch', 'RequestForm', 'DJControls', 'SessionManager']),
-  },
-  
-  // Game Night recipes
-  {
-    id: 'gamenight-spectate',
-    connectorId: 'gamenight',
-    name: 'Spectate Matches',
-    description: 'View ongoing matches and tournament brackets',
-    scopes: JSON.stringify(['gamenight.matches.read']),
-    uiModules: JSON.stringify(['MatchList', 'TournamentBracket', 'Leaderboard']),
-  },
-  {
-    id: 'gamenight-play',
-    connectorId: 'gamenight',
-    name: 'Join Games',
-    description: 'Join matches and submit results',
-    scopes: JSON.stringify(['gamenight.matches.read', 'gamenight.matches.join', 'gamenight.results.submit']),
-    uiModules: JSON.stringify(['MatchList', 'TournamentBracket', 'Leaderboard', 'MatchLobby', 'ResultForm']),
-  },
-  {
-    id: 'gamenight-organize',
-    connectorId: 'gamenight',
-    name: 'Tournament Organizer',
-    description: 'Create and manage tournaments',
-    scopes: JSON.stringify(['gamenight.matches.read', 'gamenight.matches.join', 'gamenight.results.submit', 'gamenight.tournaments.create']),
-    uiModules: JSON.stringify(['MatchList', 'TournamentBracket', 'Leaderboard', 'MatchLobby', 'ResultForm', 'TournamentCreator', 'OrganizerDashboard']),
-  },
 ];
 
 // First-party App Blocks that can act as providers
@@ -211,38 +135,6 @@ const FIRST_PARTY_PROVIDERS = [
       { name: 'collab.projects.manage', description: 'Create and manage projects', isPublicRead: false, requiredRole: 'organizer' },
     ],
     tags: ['official', 'tasks', 'projects', 'teamwork'],
-  },
-  {
-    id: 'block_djq',
-    name: 'DJQ',
-    slug: 'djq',
-    description: 'Official music queue and DJ sessions platform. Host and participate in live audio experiences.',
-    category: 'music' as const,
-    iconUrl: '/connectors/djq.svg',
-    baseApiUrl: '/api/districts/djq',
-    scopes: [
-      { name: 'djq.queue.read', description: 'View the current music queue', isPublicRead: true, requiredRole: null },
-      { name: 'djq.queue.write', description: 'Add songs to the queue', isPublicRead: false, requiredRole: 'member' },
-      { name: 'djq.queue.manage', description: 'Reorder, skip, or remove songs', isPublicRead: false, requiredRole: 'organizer' },
-      { name: 'djq.session.create', description: 'Start new DJ sessions', isPublicRead: false, requiredRole: 'creator' },
-    ],
-    tags: ['official', 'music', 'dj', 'audio', 'detroit'],
-  },
-  {
-    id: 'block_gamenight',
-    name: 'Game Night',
-    slug: 'gamenight',
-    description: 'Official gaming platform. Join multiplayer games, tournaments, and competitive events.',
-    category: 'games' as const,
-    iconUrl: '/connectors/gamenight.svg',
-    baseApiUrl: '/api/districts/gamenight',
-    scopes: [
-      { name: 'gamenight.matches.read', description: 'View matches and tournaments', isPublicRead: true, requiredRole: null },
-      { name: 'gamenight.matches.join', description: 'Join available matches', isPublicRead: false, requiredRole: 'member' },
-      { name: 'gamenight.results.submit', description: 'Submit match results', isPublicRead: false, requiredRole: 'member' },
-      { name: 'gamenight.tournaments.create', description: 'Create new tournaments', isPublicRead: false, requiredRole: 'organizer' },
-    ],
-    tags: ['official', 'games', 'tournaments', 'esports'],
   },
 ];
 

@@ -200,19 +200,6 @@ const Divider = styled.div`
 `;
 
 
-const SecondaryLink = styled(Link)`
-  color: ${({ theme }) => theme.textSecondary};
-  text-decoration: none;
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.95rem;
-  transition: color 0.2s ease;
-  
-  &:hover {
-    color: ${({ theme }) => theme.accent};
-  }
-`;
-
-
 const BlockImageContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -372,14 +359,8 @@ const getStageLabel = (stage: string | null): string => {
   }
 };
 
-// Get the resume URL for a draft block
-const getResumeUrl = (block: AppBlock): string => {
-  if (block.onboardingStage === 'connectors' || block.onboardingStage === 'complete') {
-    return `/app-blocks/${block.id}`;
-  }
-  if (block.blockType) {
-    return `/onboarding/${block.blockType}?name=${encodeURIComponent(block.name)}&blockId=${block.id}`;
-  }
+// Get the URL for a block - always goes to the block detail page
+const getBlockUrl = (block: AppBlock): string => {
   return `/app-blocks/${block.id}`;
 };
 
@@ -458,11 +439,6 @@ const DashboardPage: React.FC = () => {
         </HeaderUser>
         
         <HeaderActions>
-          {appBlocks.length > 0 && (
-            <HeaderButton href="/app-blocks">
-              My Blocks
-            </HeaderButton>
-          )}
           <HeaderButton href="/account">
             ⚙️
           </HeaderButton>
@@ -489,7 +465,7 @@ const DashboardPage: React.FC = () => {
                 {draftBlocks.map((block, index) => (
                   <BlockCard 
                     key={block.id} 
-                    href={getResumeUrl(block)}
+                    href={getBlockUrl(block)}
                     $index={index}
                   >
                     <BlockCardIcon $iconUrl={block.iconUrl}>
@@ -509,7 +485,7 @@ const DashboardPage: React.FC = () => {
             {activeBlocks.length > 0 && (
               <>
                 {draftBlocks.length > 0 && <SectionLabel style={{ marginTop: '1rem' }}>Active</SectionLabel>}
-                {activeBlocks.slice(0, 5).map((block, index) => (
+                {activeBlocks.map((block, index) => (
                   <BlockCard 
                     key={block.id} 
                     href={`/app-blocks/${block.id}`}
@@ -531,12 +507,6 @@ const DashboardPage: React.FC = () => {
               + Create New Block
             </NewBlockButton>
           </BlocksListContainer>
-          
-          {activeBlocks.length > 5 && (
-            <SecondaryLink href="/app-blocks" style={{ marginTop: '1rem' }}>
-              View all {activeBlocks.length} blocks →
-            </SecondaryLink>
-          )}
         </ContentSection>
       </Main>
     </Container>

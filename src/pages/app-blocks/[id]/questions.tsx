@@ -1,12 +1,15 @@
-import React, { useEffect, useState, useCallback } from "react";
-import Head from "next/head";
-import styled, { keyframes } from "styled-components";
-import { useRouter } from "next/router";
-import Link from "next/link";
-import { useUser } from "@/contexts/UserContext";
-import { Loading } from "@/components/Loading";
-import VoiceTranscriber from "@/components/VoiceTranscriber";
-import { blockTypeQuestions, BlockTypeConfig } from "@/data/template";
+import React, { useEffect, useState, useCallback } from 'react';
+import Head from 'next/head';
+import styled, { keyframes } from 'styled-components';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import { useUser } from '@/contexts/UserContext';
+import { useAppBlock, AppBlockWithInstallations } from '@/contexts/AppBlockContext';
+import { Loading } from '@/components/Loading';
+import VoiceTranscriber from '@/components/VoiceTranscriber';
+import { blockTypeQuestions, BlockTypeConfig } from '@/data/template';
+
+const APP_NAME = 'Renaissance City';
 
 // Type definitions
 interface ProcessedAnswer {
@@ -64,8 +67,6 @@ interface ProductRequirementsDocument {
   risks: string[];
 }
 
-const APP_NAME = "Renaissance City";
-
 const fadeIn = keyframes`
   from {
     opacity: 0;
@@ -80,6 +81,15 @@ const fadeIn = keyframes`
 const spin = keyframes`
   to {
     transform: rotate(360deg);
+  }
+`;
+
+const pulseGlow = keyframes`
+  0%, 100% {
+    filter: drop-shadow(0 0 15px rgba(167, 139, 250, 0.4)) drop-shadow(0 0 30px rgba(232, 121, 249, 0.2));
+  }
+  50% {
+    filter: drop-shadow(0 0 25px rgba(167, 139, 250, 0.6)) drop-shadow(0 0 50px rgba(232, 121, 249, 0.4));
   }
 `;
 
@@ -134,15 +144,6 @@ const HeroSection = styled.section`
   text-align: center;
   margin-bottom: 1.5rem;
   animation: ${fadeIn} 0.4s ease-out;
-`;
-
-const pulseGlow = keyframes`
-  0%, 100% {
-    filter: drop-shadow(0 0 15px rgba(167, 139, 250, 0.4)) drop-shadow(0 0 30px rgba(232, 121, 249, 0.2));
-  }
-  50% {
-    filter: drop-shadow(0 0 25px rgba(167, 139, 250, 0.6)) drop-shadow(0 0 50px rgba(232, 121, 249, 0.4));
-  }
 `;
 
 const BlockImage = styled.img`
@@ -278,157 +279,18 @@ const ProcessingText = styled.p`
   margin: 0;
 `;
 
-// Document Display Styles
-const DocumentCard = styled.div`
-  background: ${({ theme }) => theme.surface};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 16px;
-  overflow: hidden;
-  animation: ${fadeIn} 0.4s ease-out;
-`;
-
-const DocumentHeader = styled.div`
-  background: linear-gradient(135deg, ${({ theme }) => theme.accent}15 0%, ${({ theme }) => theme.accentGold}15 100%);
-  padding: 1.25rem;
-  text-align: center;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-`;
-
-const DocumentTitle = styled.h2`
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.text};
-  margin: 0 0 0.25rem 0;
-`;
-
-const DocumentTagline = styled.p`
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.95rem;
-  color: ${({ theme }) => theme.accent};
-  font-style: italic;
-  margin: 0;
-`;
-
-const DocumentBody = styled.div`
-  padding: 1.25rem;
-`;
-
-const Section = styled.div`
-  margin-bottom: 1.25rem;
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const SectionTitle = styled.h3`
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.textSecondary};
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin: 0 0 0.5rem 0;
-`;
-
-const SectionContent = styled.p`
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.95rem;
-  color: ${({ theme }) => theme.text};
-  line-height: 1.5;
-  margin: 0;
-`;
-
-const FeatureList = styled.ul`
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-`;
-
-const FeatureItem = styled.li`
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.text};
-  line-height: 1.4;
-  
-  &::before {
-    content: '✦';
-    color: ${({ theme }) => theme.accent};
-    flex-shrink: 0;
-    font-size: 0.75rem;
-  }
-`;
-
-const AnswerCard = styled.div`
-  background: ${({ theme }) => theme.background};
-  border: 1px solid ${({ theme }) => theme.border};
+const ErrorMessage = styled.div`
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.75rem;
   border-radius: 10px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.75rem;
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const AnswerQuestion = styled.div`
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.textSecondary};
-  margin-bottom: 0.375rem;
-`;
-
-const AnswerText = styled.div`
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.text};
-  line-height: 1.4;
+  font-size: 0.85rem;
+  margin-top: 1rem;
+  text-align: center;
 `;
 
-const KeyPoints = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  margin-top: 0.5rem;
-`;
-
-const KeyPoint = styled.span`
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.65rem;
-  padding: 0.2rem 0.5rem;
-  background: ${({ theme }) => theme.accent}15;
-  color: ${({ theme }) => theme.accent};
-  border-radius: 100px;
-`;
-
-const NextStepsList = styled.ol`
-  margin: 0;
-  padding: 0 0 0 1.125rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-`;
-
-const NextStepItem = styled.li`
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.9rem;
-  color: ${({ theme }) => theme.text};
-  line-height: 1.4;
-  
-  &::marker {
-    color: ${({ theme }) => theme.accent};
-    font-weight: 600;
-  }
-`;
-
+// Follow-up styles
 const FollowUpCard = styled.div<{ $index: number }>`
   background: ${({ theme }) => theme.surface};
   border: 1px solid ${({ theme }) => theme.border};
@@ -533,6 +395,7 @@ const SkippedBadge = styled.span`
   background: ${({ theme }) => theme.background};
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
+  margin-left: 0.5rem;
 `;
 
 const SubmitSection = styled.div`
@@ -545,13 +408,6 @@ const ProgressText = styled.p`
   font-size: 0.8rem;
   color: ${({ theme }) => theme.textSecondary};
   margin-bottom: 1rem;
-`;
-
-const ActionsRow = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
 `;
 
 const Button = styled.button<{ $primary?: boolean }>`
@@ -590,213 +446,26 @@ const Button = styled.button<{ $primary?: boolean }>`
   }
 `;
 
-const ErrorMessage = styled.div`
-  background: #fee2e2;
-  color: #dc2626;
-  padding: 0.75rem;
-  border-radius: 10px;
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.85rem;
-  margin-top: 1rem;
-  text-align: center;
-`;
+type ViewState = 'questions' | 'processing' | 'followup';
 
-type ViewState = 'questions' | 'processing' | 'followup' | 'document';
-
-const OnboardingPage: React.FC = () => {
+const QuestionsPage: React.FC = () => {
   const router = useRouter();
-  const { type, name } = router.query;
+  const { id } = router.query;
   const { user, isLoading: isUserLoading } = useUser();
+  const { fetchAppBlock } = useAppBlock();
   
-  // Local view state for UI
+  const [appBlock, setAppBlock] = useState<AppBlockWithInstallations | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [viewState, setViewState] = useState<ViewState>('questions');
   const [transcript, setTranscript] = useState('');
   const [processedAnswers, setProcessedAnswers] = useState<ProcessedAnswer[]>([]);
   const [summary, setSummary] = useState<BlockSummary | null>(null);
   const [followUpQuestions, setFollowUpQuestions] = useState<FollowUpQuestion[]>([]);
   const [followUpAnswers, setFollowUpAnswers] = useState<Record<string, FollowUpAnswer>>({});
-  const [prd, setPrd] = useState<ProductRequirementsDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  // App block state - stores the created block ID
-  const [appBlockId, setAppBlockId] = useState<string | null>(null);
-  const [blockSubmitted, setBlockSubmitted] = useState(false);
-  const [submittingBlock, setSubmittingBlock] = useState(false);
-  
-  const blockType = type as string;
-  const blockName = name as string;
-  const blockId = router.query.blockId as string | undefined;
+  const blockType = appBlock?.blockType || '';
   const config: BlockTypeConfig | undefined = blockTypeQuestions[blockType];
-
-  // Load existing block data if resuming
-  useEffect(() => {
-    const loadExistingBlock = async () => {
-      if (blockId && !appBlockId) {
-        try {
-          const response = await fetch(`/api/app-blocks/${blockId}`);
-          const data = await response.json();
-          
-          if (data.appBlock) {
-            const block = data.appBlock;
-            setAppBlockId(block.id);
-            setBlockSubmitted(true);
-            
-            // Parse onboarding data if present
-            if (block.onboardingData) {
-              try {
-                const onboardingData = JSON.parse(block.onboardingData);
-                if (onboardingData.summary) setSummary(onboardingData.summary);
-                if (onboardingData.processedAnswers) setProcessedAnswers(onboardingData.processedAnswers);
-                if (onboardingData.followUpQuestions) setFollowUpQuestions(onboardingData.followUpQuestions);
-                if (onboardingData.followUpAnswers) setFollowUpAnswers(onboardingData.followUpAnswers);
-                if (onboardingData.prd) setPrd(onboardingData.prd);
-              } catch (e) {
-                console.error('Failed to parse onboarding data:', e);
-              }
-            }
-            
-            // Set view state based on onboarding stage
-            if (block.onboardingStage === 'followup' && !prd) {
-              setViewState('followup');
-            } else if (block.onboardingStage === 'document' || prd) {
-              setViewState('document');
-            }
-          }
-        } catch (err) {
-          console.error('Failed to load existing block:', err);
-        }
-      }
-    };
-    
-    loadExistingBlock();
-  }, [blockId, appBlockId]);
-
-  // Create app block after initial questions are processed
-  const submitAppBlock = useCallback(async () => {
-    // Validate all required data is present
-    if (!summary) {
-      console.log('⏳ submitAppBlock: waiting for summary');
-      return;
-    }
-    if (!blockType) {
-      console.log('⏳ submitAppBlock: waiting for blockType (router not ready)');
-      return;
-    }
-    if (blockSubmitted) {
-      console.log('⏳ submitAppBlock: already submitted');
-      return;
-    }
-    if (submittingBlock) {
-      console.log('⏳ submitAppBlock: already submitting');
-      return;
-    }
-
-    console.log('🚀 submitAppBlock: Creating app block...', {
-      blockName: blockName || summary.name,
-      blockType,
-      hasSummary: !!summary,
-      answersCount: processedAnswers.length,
-    });
-
-    setSubmittingBlock(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/pending-blocks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          blockName: blockName || summary.name,
-          blockType,
-          summary,
-          processedAnswers,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success && data.appBlock) {
-        setAppBlockId(data.appBlock.id);
-        setBlockSubmitted(true);
-        console.log('✅ App block created:', data.appBlock.id);
-        
-        // Update URL with block ID so user can resume
-        router.replace(
-          `/onboarding/${blockType}?name=${encodeURIComponent(blockName || summary.name)}&blockId=${data.appBlock.id}`,
-          undefined,
-          { shallow: true }
-        );
-      } else {
-        console.error('❌ Failed to create app block:', data.error);
-        setError(data.error || 'Failed to save your app block');
-      }
-    } catch (err) {
-      console.error('❌ Error creating app block:', err);
-      setError(err instanceof Error ? err.message : 'Failed to save your app block');
-    } finally {
-      setSubmittingBlock(false);
-    }
-  }, [summary, blockName, blockType, processedAnswers, blockSubmitted, submittingBlock, router]);
-
-  // Automatically create app block after initial questions are processed
-  useEffect(() => {
-    // Wait for router to be ready and all required data to be present
-    if (!router.isReady) {
-      console.log('⏳ useEffect: router not ready');
-      return;
-    }
-    if (!summary) {
-      return;
-    }
-    if (processedAnswers.length === 0) {
-      console.log('⏳ useEffect: no processed answers yet');
-      return;
-    }
-    if (blockSubmitted) {
-      return;
-    }
-    if (blockId) {
-      console.log('⏳ useEffect: blockId exists, skipping auto-create');
-      return;
-    }
-    if (!blockType) {
-      console.log('⏳ useEffect: blockType not available');
-      return;
-    }
-
-    console.log('📝 useEffect: triggering submitAppBlock');
-    submitAppBlock();
-  }, [router.isReady, summary, processedAnswers, blockSubmitted, blockId, blockType, submitAppBlock]);
-
-  // Update block progress when PRD is generated
-  useEffect(() => {
-    const updateBlockProgress = async () => {
-      if (appBlockId && prd) {
-        try {
-          await fetch('/api/pending-blocks', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              appBlockId,
-              onboardingStage: 'document',
-              onboardingData: {
-                summary,
-                processedAnswers,
-                followUpQuestions,
-                followUpAnswers,
-                prd,
-              },
-            }),
-          });
-          console.log('✅ Block progress updated with PRD');
-        } catch (err) {
-          console.error('Error updating block progress:', err);
-        }
-      }
-    };
-    
-    updateBlockProgress();
-  }, [appBlockId, prd, summary, processedAnswers, followUpQuestions, followUpAnswers]);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -805,22 +474,52 @@ const OnboardingPage: React.FC = () => {
   }, [isUserLoading, user, router]);
 
   useEffect(() => {
-    if (type && !blockTypeQuestions[type as string]) {
-      router.push('/get-started');
+    if (id && typeof id === 'string' && user) {
+      setIsLoading(true);
+      fetchAppBlock(id).then((block) => {
+        setAppBlock(block);
+        setIsLoading(false);
+        
+        // Check if block already has processed answers
+        if (block?.onboardingData) {
+          try {
+            const data = JSON.parse(block.onboardingData);
+            if (data.processedAnswers?.length > 0) {
+              setProcessedAnswers(data.processedAnswers);
+            }
+            if (data.summary) {
+              setSummary(data.summary);
+            }
+            if (data.followUpQuestions?.length > 0) {
+              setFollowUpQuestions(data.followUpQuestions);
+              // Initialize follow-up answers state
+              const initialAnswers: Record<string, FollowUpAnswer> = {};
+              data.followUpQuestions.forEach((q: FollowUpQuestion) => {
+                initialAnswers[q.id] = {
+                  questionId: q.id,
+                  question: q.question,
+                  answer: q.type === 'multi' ? [] : '',
+                  skipped: false,
+                };
+              });
+              setFollowUpAnswers(data.followUpAnswers || initialAnswers);
+              setViewState('followup');
+            }
+            if (data.prd) {
+              // Already has PRD, redirect to block page
+              router.push(`/app-blocks/${id}`);
+            }
+          } catch (e) {
+            console.error('Failed to parse onboarding data:', e);
+          }
+        }
+      });
     }
-  }, [type, router]);
-
-  if (isUserLoading || !config) {
-    return <Loading text="Loading..." />;
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  const questions = config.questions;
+  }, [id, user, fetchAppBlock, router]);
 
   const processTranscript = async (transcriptText: string, isFollowUp = false, followUpData?: Record<string, FollowUpAnswer>) => {
+    if (!appBlock || !config) return;
+    
     setViewState('processing');
     setError(null);
     
@@ -842,9 +541,9 @@ const OnboardingPage: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           transcript: isFollowUp ? formattedFollowUps : transcriptText,
-          questions: isFollowUp ? followUpQuestions.map(q => q.question) : questions,
+          questions: isFollowUp ? followUpQuestions.map(q => q.question) : config.questions,
           blockType: config.name,
-          blockName,
+          blockName: appBlock.name,
           isFollowUp,
           previousAnswers: isFollowUp ? processedAnswers : undefined,
           previousSummary: isFollowUp ? summary : undefined,
@@ -858,16 +557,33 @@ const OnboardingPage: React.FC = () => {
       }
 
       if (isFollowUp) {
-        // Merge follow-up answers with previous answers
-        const newAnswers = data.answers || [];
-        setProcessedAnswers(prev => [...prev, ...newAnswers]);
-        setSummary(data.summary || summary);
-        setPrd(data.prd || null);
-        setFollowUpQuestions([]);
-        setViewState('document');
+        // Update block with PRD
+        await updateBlockProgress({
+          onboardingStage: 'document',
+          onboardingData: {
+            summary: data.summary || summary,
+            processedAnswers: [...processedAnswers, ...(data.answers || [])],
+            followUpQuestions,
+            followUpAnswers: followUpData,
+            prd: data.prd,
+          },
+        });
+        
+        // Redirect to block page
+        router.push(`/app-blocks/${appBlock.id}`);
       } else {
         setProcessedAnswers(data.answers || []);
         setSummary(data.summary || null);
+        
+        // Update block with progress
+        await updateBlockProgress({
+          onboardingStage: 'followup',
+          onboardingData: {
+            summary: data.summary,
+            processedAnswers: data.answers || [],
+            followUpQuestions: data.followUpQuestions || [],
+          },
+        });
         
         // If there are follow-up questions, show them
         if (data.followUpQuestions && data.followUpQuestions.length > 0) {
@@ -885,13 +601,31 @@ const OnboardingPage: React.FC = () => {
           setFollowUpAnswers(initialAnswers);
           setViewState('followup');
         } else {
-          setViewState('document');
+          // No follow-ups, redirect to block page
+          router.push(`/app-blocks/${appBlock.id}`);
         }
       }
     } catch (err) {
       console.error('Error processing transcript:', err);
       setError(err instanceof Error ? err.message : 'Failed to process answers');
       setViewState(isFollowUp ? 'followup' : 'questions');
+    }
+  };
+
+  const updateBlockProgress = async (data: { onboardingStage?: string; onboardingData?: object }) => {
+    if (!appBlock) return;
+    
+    try {
+      await fetch('/api/pending-blocks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appBlockId: appBlock.id,
+          ...data,
+        }),
+      });
+    } catch (err) {
+      console.error('Error updating block progress:', err);
     }
   };
 
@@ -961,39 +695,52 @@ const OnboardingPage: React.FC = () => {
     });
   };
 
-  const handleContinue = () => {
-    if (appBlockId) {
-      router.push(`/app-blocks/${appBlockId}`);
-    }
-    // Don't fall back to /app-blocks/new - wait for block to be created
-  };
+  if (isUserLoading || isLoading) {
+    return <Loading text="Loading..." />;
+  }
 
-  const handleReRecord = () => {
-    // Reset local state
-    setTranscript('');
-    setProcessedAnswers([]);
-    setSummary(null);
-    setFollowUpQuestions([]);
-    setFollowUpAnswers({});
-    setPrd(null);
-    setViewState('questions');
-    setBlockSubmitted(false);
-    setAppBlockId(null);
-  };
+  if (!user || !appBlock) {
+    return (
+      <Container>
+        <Header>
+          <BackLink href="/dashboard">← Back</BackLink>
+        </Header>
+        <Main>
+          <HeroSection>
+            <Title>Block Not Found</Title>
+          </HeroSection>
+        </Main>
+      </Container>
+    );
+  }
+
+  if (!config) {
+    return (
+      <Container>
+        <Header>
+          <BackLink href={`/app-blocks/${appBlock.id}`}>← Back to {appBlock.name}</BackLink>
+        </Header>
+        <Main>
+          <HeroSection>
+            <Title>Unknown Block Type</Title>
+            <Subtitle>This block type is not recognized.</Subtitle>
+          </HeroSection>
+        </Main>
+      </Container>
+    );
+  }
+
+  const questions = config.questions;
 
   return (
     <Container>
       <Head>
-        <title>Shape Your {config.name} | {APP_NAME}</title>
-        <meta name="description" content={`Define your ${config.name} for Renaissance City`} />
-        <link rel="icon" href="/favicon.ico" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Questions - {appBlock.name} | {APP_NAME}</title>
+        <meta name="description" content={`Define your ${config.name}`} />
       </Head>
 
       <Header>
-        <BackLink href="/get-started">
-          ← Back
-        </BackLink>
+        <BackLink href={`/app-blocks/${appBlock.id}`}>← Back</BackLink>
         <BlockTypeLabel>
           <span>{config.icon}</span>
           {config.name}
@@ -1005,7 +752,7 @@ const OnboardingPage: React.FC = () => {
           <>
             <HeroSection>
               <BlockImage src="/app-block.png" alt="Your Block" />
-              {blockName && <Title>{blockName}</Title>}
+              <Title>{appBlock.name}</Title>
               <Subtitle>
                 Think through these questions, then record your answers.
               </Subtitle>
@@ -1043,7 +790,7 @@ const OnboardingPage: React.FC = () => {
           <>
             <HeroSection>
               <BlockImage src="/app-block.png" alt="Your Block" />
-              {blockName && <Title>{blockName}</Title>}
+              <Title>{appBlock.name}</Title>
               <Subtitle>Processing your answers...</Subtitle>
             </HeroSection>
             <ProcessingSection>
@@ -1057,7 +804,7 @@ const OnboardingPage: React.FC = () => {
           <>
             <HeroSection>
               <BlockImage src="/app-block.png" alt="Your Block" />
-              {blockName && <Title>{blockName}</Title>}
+              <Title>{appBlock.name}</Title>
               <Subtitle>
                 A few more details to finalize your block requirements.
               </Subtitle>
@@ -1134,44 +881,6 @@ const OnboardingPage: React.FC = () => {
                     a.skipped || (Array.isArray(a.answer) ? a.answer.length > 0 : a.answer)
                   ).length} of {followUpQuestions.length} questions answered
                 </ProgressText>
-                {/* Draft status indicator */}
-                {submittingBlock && (
-                  <ProgressText style={{ color: 'var(--accent)', marginBottom: '0.5rem' }}>
-                    Saving your draft...
-                  </ProgressText>
-                )}
-                {blockSubmitted && appBlockId && (
-                  <ProgressText style={{ color: 'var(--accent)', marginBottom: '0.5rem' }}>
-                    ✓ Draft saved
-                  </ProgressText>
-                )}
-                {!blockSubmitted && !submittingBlock && summary && !error && (
-                  <ProgressText style={{ color: '#f59e0b', marginBottom: '0.5rem' }}>
-                    Waiting to save draft...
-                  </ProgressText>
-                )}
-                {error && (
-                  <ErrorMessage>
-                    {error}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setError(null);
-                        submitAppBlock();
-                      }}
-                      style={{
-                        marginLeft: '0.5rem',
-                        background: 'none',
-                        border: 'none',
-                        textDecoration: 'underline',
-                        cursor: 'pointer',
-                        color: 'inherit',
-                      }}
-                    >
-                      Retry
-                    </button>
-                  </ErrorMessage>
-                )}
                 <Button 
                   $primary 
                   onClick={handleSubmitFollowUps}
@@ -1179,63 +888,9 @@ const OnboardingPage: React.FC = () => {
                 >
                   Generate Requirements →
                 </Button>
+                {error && <ErrorMessage>{error}</ErrorMessage>}
               </SubmitSection>
             </QuestionsCard>
-          </>
-        )}
-
-        {viewState === 'document' && summary && (
-          <>
-            <HeroSection>
-              <BlockImage src="/app-block.png" alt="Your Block" />
-              {blockName && <Title>{blockName}</Title>}
-              <Subtitle>
-                {prd ? 'Your product requirements are ready.' : 'Review what we captured, then create your block.'}
-              </Subtitle>
-            </HeroSection>
-
-            {/* Summary Card */}
-            <DocumentCard>
-              <DocumentHeader>
-                <DocumentTitle>{summary.name}</DocumentTitle>
-                <DocumentTagline>{summary.tagline}</DocumentTagline>
-              </DocumentHeader>
-
-              <DocumentBody>
-                <Section>
-                  <SectionTitle>About</SectionTitle>
-                  <SectionContent>{summary.description}</SectionContent>
-                </Section>
-
-                <Section>
-                  <SectionTitle>Audience</SectionTitle>
-                  <SectionContent>{summary.targetAudience}</SectionContent>
-                </Section>
-
-                <Section>
-                  <SectionTitle>Core Features</SectionTitle>
-                  <FeatureList>
-                    {summary.coreFeatures.map((feature, idx) => (
-                      <FeatureItem key={idx}>{feature}</FeatureItem>
-                    ))}
-                  </FeatureList>
-                </Section>
-              </DocumentBody>
-            </DocumentCard>
-
-            {/* Actions */}
-            <ActionsRow style={{ marginTop: '1.5rem' }}>
-              <Button onClick={handleReRecord}>
-                Start Over
-              </Button>
-              <Button 
-                $primary 
-                onClick={handleContinue}
-                disabled={!appBlockId || submittingBlock}
-              >
-                {submittingBlock ? 'Creating...' : 'Continue →'}
-              </Button>
-            </ActionsRow>
           </>
         )}
       </Main>
@@ -1243,4 +898,4 @@ const OnboardingPage: React.FC = () => {
   );
 };
 
-export default OnboardingPage;
+export default QuestionsPage;

@@ -152,8 +152,6 @@ const CardWrapper = styled.div`
 const iconMap: Record<string, string> = {
   events: '📅',
   collab: '🤝',
-  djq: '🎵',
-  gamenight: '🎮',
 };
 
 interface ConnectorPickerProps {

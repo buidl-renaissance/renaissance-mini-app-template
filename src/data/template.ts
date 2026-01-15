@@ -50,7 +50,7 @@ export const blockTypeQuestions: Record<string, BlockTypeConfig> = {
       "What does a thriving version of this community look like in 6 months?",
       "How will you welcome new members and maintain the culture?",
     ],
-    suggestedConnectors: ['events', 'collab', 'gamenight'],
+    suggestedConnectors: ['events', 'collab'],
   },
   project: {
     id: 'project',
@@ -95,7 +95,7 @@ export const blockTypeQuestions: Record<string, BlockTypeConfig> = {
       "Will people play alone, together, or compete against each other?",
       "What makes someone want to come back and play again?",
     ],
-    suggestedConnectors: ['gamenight', 'events'],
+    suggestedConnectors: ['events'],
   },
   unsure: {
     id: 'unsure',

@@ -168,8 +168,6 @@ const ErrorMessage = styled.div`
 const iconMap: Record<string, string> = {
   events: '📅',
   collab: '🤝',
-  djq: '🎵',
-  gamenight: '🎮',
 };
 
 type Step = 'select' | 'recipe' | 'consent';
@@ -300,7 +298,7 @@ const ConnectPage: React.FC = () => {
     return (
       <Container>
         <Header>
-          <BackLink href="/app-blocks">← Back to App Blocks</BackLink>
+          <BackLink href="/dashboard">← Back to Dashboard</BackLink>
           <PageTitle>App Block Not Found</PageTitle>
         </Header>
       </Container>

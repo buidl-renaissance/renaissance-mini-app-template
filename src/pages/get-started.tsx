@@ -334,6 +334,8 @@ const GetStartedPage: React.FC = () => {
   const [imageError, setImageError] = useState(false);
   const [blockName, setBlockName] = useState('');
   const [isBlockClaimed, setIsBlockClaimed] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   // Redirect to auth if not authenticated
   useEffect(() => {
@@ -367,9 +369,46 @@ const GetStartedPage: React.FC = () => {
     setIsBlockClaimed(true);
   };
 
-  // Handle selecting block type
-  const handleSelectBlockType = (type: string) => {
-    router.push(`/onboarding/${type}?name=${encodeURIComponent(blockName)}`);
+  // Handle selecting block type - creates the block and redirects to questions
+  const handleSelectBlockType = async (type: string) => {
+    if (isCreating) return;
+    
+    setIsCreating(true);
+    setCreateError(null);
+    
+    try {
+      const response = await fetch('/api/pending-blocks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blockName: blockName.trim(),
+          blockType: type,
+          summary: {
+            name: blockName.trim(),
+            tagline: '',
+            description: '',
+            targetAudience: '',
+            coreFeatures: [],
+            nextSteps: [],
+          },
+          processedAnswers: [],
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.appBlock) {
+        // Redirect to the questions page
+        router.push(`/app-blocks/${data.appBlock.id}/questions`);
+      } else {
+        setCreateError(data.error || 'Failed to create block');
+        setIsCreating(false);
+      }
+    } catch (err) {
+      console.error('Error creating block:', err);
+      setCreateError('Failed to create block. Please try again.');
+      setIsCreating(false);
+    }
   };
 
   if (isUserLoading || isBlocksLoading) {
@@ -461,43 +500,71 @@ const GetStartedPage: React.FC = () => {
                 What you build here will connect to others — together, we&apos;re rebuilding Detroit, one block at a time.
               </BlockText>
               
-              <BlockTypeGrid>
-                <BlockTypeCard $index={0} onClick={() => handleSelectBlockType('creator')}>
+              {createError && (
+                <div style={{
+                  padding: '0.75rem 1rem',
+                  background: '#fee2e2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '10px',
+                  color: '#dc2626',
+                  fontFamily: "'Crimson Pro', Georgia, serif",
+                  fontSize: '0.9rem',
+                  marginTop: '1rem',
+                  width: '100%',
+                  maxWidth: '440px',
+                  textAlign: 'center',
+                }}>
+                  {createError}
+                </div>
+              )}
+              
+              <BlockTypeGrid style={{ opacity: isCreating ? 0.5 : 1, pointerEvents: isCreating ? 'none' : 'auto' }}>
+                <BlockTypeCard $index={0} onClick={() => handleSelectBlockType('creator')} disabled={isCreating}>
                   <BlockTypeIcon>🎨</BlockTypeIcon>
                   <BlockTypeName>Creator Block</BlockTypeName>
                   <BlockTypeDesc>Art, music, writing, culture, expression</BlockTypeDesc>
                 </BlockTypeCard>
                 
-                <BlockTypeCard $index={1} onClick={() => handleSelectBlockType('community')}>
+                <BlockTypeCard $index={1} onClick={() => handleSelectBlockType('community')} disabled={isCreating}>
                   <BlockTypeIcon>🧠</BlockTypeIcon>
                   <BlockTypeName>Community Block</BlockTypeName>
                   <BlockTypeDesc>Events, meetups, education, organizing</BlockTypeDesc>
                 </BlockTypeCard>
                 
-                <BlockTypeCard $index={2} onClick={() => handleSelectBlockType('project')}>
+                <BlockTypeCard $index={2} onClick={() => handleSelectBlockType('project')} disabled={isCreating}>
                   <BlockTypeIcon>🏗</BlockTypeIcon>
                   <BlockTypeName>Project / Product Block</BlockTypeName>
                   <BlockTypeDesc>Apps, tools, experiments, startups</BlockTypeDesc>
                 </BlockTypeCard>
                 
-                <BlockTypeCard $index={3} onClick={() => handleSelectBlockType('business')}>
+                <BlockTypeCard $index={3} onClick={() => handleSelectBlockType('business')} disabled={isCreating}>
                   <BlockTypeIcon>🏪</BlockTypeIcon>
                   <BlockTypeName>Business Block</BlockTypeName>
                   <BlockTypeDesc>Local services, venues, shops</BlockTypeDesc>
                 </BlockTypeCard>
                 
-                <BlockTypeCard $index={4} onClick={() => handleSelectBlockType('game')}>
+                <BlockTypeCard $index={4} onClick={() => handleSelectBlockType('game')} disabled={isCreating}>
                   <BlockTypeIcon>🎮</BlockTypeIcon>
                   <BlockTypeName>Game / Interactive Block</BlockTypeName>
                   <BlockTypeDesc>Experiences, quests, play</BlockTypeDesc>
                 </BlockTypeCard>
                 
-                <BlockTypeCard $index={5} onClick={() => handleSelectBlockType('unsure')}>
+                <BlockTypeCard $index={5} onClick={() => handleSelectBlockType('unsure')} disabled={isCreating}>
                   <BlockTypeIcon>🌱</BlockTypeIcon>
                   <BlockTypeName>Not Sure Yet</BlockTypeName>
                   <BlockTypeDesc>Help me shape it</BlockTypeDesc>
                 </BlockTypeCard>
               </BlockTypeGrid>
+              
+              {isCreating && (
+                <div style={{
+                  marginTop: '1.5rem',
+                  fontFamily: "'Crimson Pro', Georgia, serif",
+                  color: 'var(--text-secondary)',
+                }}>
+                  Creating your block...
+                </div>
+              )}
             </ContentSection>
           </>
         )}
