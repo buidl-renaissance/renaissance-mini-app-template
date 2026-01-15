@@ -406,16 +406,225 @@ const OptionsRow = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin-bottom: 0.5rem;
 `;
 
-const OptionChip = styled.span`
+const OptionChip = styled.button<{ $selected?: boolean }>`
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.8rem;
-  padding: 0.375rem 0.75rem;
-  background: ${({ theme }) => theme.accent}10;
-  border: 1px solid ${({ theme }) => theme.accent}30;
-  color: ${({ theme }) => theme.text};
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  background: ${({ $selected, theme }) => $selected ? theme.accent : theme.background};
+  border: 1px solid ${({ $selected, theme }) => $selected ? theme.accent : theme.border};
+  color: ${({ $selected, theme }) => $selected ? 'white' : theme.text};
   border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: ${({ theme }) => theme.accent};
+    background: ${({ $selected, theme }) => $selected ? theme.accent : `${theme.accent}15`};
+  }
+`;
+
+const OpenTextInput = styled.textarea`
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 10px;
+  background: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: none;
+  min-height: 80px;
+  margin-bottom: 0.5rem;
+  
+  &::placeholder {
+    color: ${({ theme }) => theme.textSecondary};
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.accent};
+  }
+`;
+
+const QuestionActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+`;
+
+const SkipButton = styled.button`
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.textSecondary};
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  
+  &:hover {
+    color: ${({ theme }) => theme.text};
+    text-decoration: underline;
+  }
+`;
+
+const SkippedBadge = styled.span`
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.7rem;
+  color: ${({ theme }) => theme.textSecondary};
+  background: ${({ theme }) => theme.background};
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+`;
+
+const SubmitSection = styled.div`
+  margin-top: 1.5rem;
+  text-align: center;
+`;
+
+const ProgressText = styled.p`
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.8rem;
+  color: ${({ theme }) => theme.textSecondary};
+  margin-bottom: 1rem;
+`;
+
+// PRD Document Styles
+const PRDCard = styled.div`
+  background: ${({ theme }) => theme.surface};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 16px;
+  overflow: hidden;
+  animation: ${fadeIn} 0.4s ease-out;
+  margin-top: 1rem;
+`;
+
+const PRDHeader = styled.div`
+  background: linear-gradient(135deg, ${({ theme }) => theme.accent}20 0%, ${({ theme }) => theme.accentGold}20 100%);
+  padding: 1.5rem;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+`;
+
+const PRDTitle = styled.h2`
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text};
+  margin: 0 0 0.25rem 0;
+`;
+
+const PRDMeta = styled.div`
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.textSecondary};
+`;
+
+const PRDBody = styled.div`
+  padding: 1.25rem;
+`;
+
+const PRDSection = styled.div`
+  margin-bottom: 1.5rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const PRDSectionTitle = styled.h3`
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.accent};
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0 0 0.75rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+`;
+
+const FeatureRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid ${({ theme }) => theme.border}50;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const FeatureName = styled.div`
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text};
+`;
+
+const FeatureDesc = styled.div`
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.85rem;
+  color: ${({ theme }) => theme.textSecondary};
+  margin-top: 0.125rem;
+`;
+
+const PriorityBadge = styled.span<{ $priority: string }>`
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.65rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 100px;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+  
+  ${({ $priority, theme }) => {
+    switch ($priority) {
+      case 'must-have':
+        return `background: ${theme.accent}20; color: ${theme.accent};`;
+      case 'should-have':
+        return `background: ${theme.accentGold}20; color: ${theme.accentGold};`;
+      default:
+        return `background: ${theme.border}; color: ${theme.textSecondary};`;
+    }
+  }}
+`;
+
+const TimelineItem = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+`;
+
+const TimelinePhase = styled.div`
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.accent};
+  min-width: 80px;
+`;
+
+const TimelineDesc = styled.div`
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.text};
+`;
+
+const RiskItem = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.375rem 0;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.text};
+  
+  &::before {
+    content: '⚠️';
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
 `;
 
 const ActionsRow = styled.div`
@@ -488,9 +697,43 @@ interface BlockSummary {
 }
 
 interface FollowUpQuestion {
+  id: string;
   question: string;
   context: string;
+  type: 'single' | 'multi' | 'open';
   options?: string[];
+}
+
+interface FollowUpAnswer {
+  questionId: string;
+  question: string;
+  answer: string | string[];
+  skipped: boolean;
+}
+
+interface ProductRequirementsDocument {
+  title: string;
+  version: string;
+  createdAt: string;
+  overview: {
+    name: string;
+    tagline: string;
+    description: string;
+    problemStatement: string;
+  };
+  targetAudience: {
+    primary: string;
+    demographics: string[];
+    painPoints: string[];
+  };
+  features: {
+    core: { name: string; description: string; priority: 'must-have' | 'should-have' | 'nice-to-have' }[];
+    future: string[];
+  };
+  technicalRequirements: string[];
+  successMetrics: string[];
+  timeline: { phase: string; description: string }[];
+  risks: string[];
 }
 
 type ViewState = 'questions' | 'processing' | 'followup' | 'document';
@@ -505,7 +748,8 @@ const OnboardingPage: React.FC = () => {
   const [processedAnswers, setProcessedAnswers] = useState<ProcessedAnswer[]>([]);
   const [summary, setSummary] = useState<BlockSummary | null>(null);
   const [followUpQuestions, setFollowUpQuestions] = useState<FollowUpQuestion[]>([]);
-  const [followUpTranscript, setFollowUpTranscript] = useState('');
+  const [followUpAnswers, setFollowUpAnswers] = useState<Record<string, FollowUpAnswer>>({});
+  const [prd, setPrd] = useState<ProductRequirementsDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   const blockType = type as string;
@@ -534,16 +778,28 @@ const OnboardingPage: React.FC = () => {
 
   const questions = config.questions;
 
-  const processTranscript = async (transcriptText: string, isFollowUp = false) => {
+  const processTranscript = async (transcriptText: string, isFollowUp = false, followUpData?: Record<string, FollowUpAnswer>) => {
     setViewState('processing');
     setError(null);
     
     try {
+      // Format follow-up answers as text for the API
+      let formattedFollowUps = '';
+      if (isFollowUp && followUpData) {
+        formattedFollowUps = Object.values(followUpData).map(fa => {
+          if (fa.skipped) {
+            return `Q: ${fa.question}\nA: [Skipped]`;
+          }
+          const answerText = Array.isArray(fa.answer) ? fa.answer.join(', ') : fa.answer;
+          return `Q: ${fa.question}\nA: ${answerText}`;
+        }).join('\n\n');
+      }
+
       const response = await fetch('/api/process-answers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          transcript: transcriptText,
+          transcript: isFollowUp ? formattedFollowUps : transcriptText,
           questions: isFollowUp ? followUpQuestions.map(q => q.question) : questions,
           blockType: config.name,
           blockName,
@@ -564,6 +820,7 @@ const OnboardingPage: React.FC = () => {
         const newAnswers = data.answers || [];
         setProcessedAnswers(prev => [...prev, ...newAnswers]);
         setSummary(data.summary || summary);
+        setPrd(data.prd || null);
         setFollowUpQuestions([]);
         setViewState('document');
       } else {
@@ -573,6 +830,17 @@ const OnboardingPage: React.FC = () => {
         // If there are follow-up questions, show them
         if (data.followUpQuestions && data.followUpQuestions.length > 0) {
           setFollowUpQuestions(data.followUpQuestions);
+          // Initialize follow-up answers state
+          const initialAnswers: Record<string, FollowUpAnswer> = {};
+          data.followUpQuestions.forEach((q: FollowUpQuestion) => {
+            initialAnswers[q.id] = {
+              questionId: q.id,
+              question: q.question,
+              answer: q.type === 'multi' ? [] : '',
+              skipped: false,
+            };
+          });
+          setFollowUpAnswers(initialAnswers);
           setViewState('followup');
         } else {
           setViewState('document');
@@ -591,10 +859,64 @@ const OnboardingPage: React.FC = () => {
     processTranscript(fullTranscript, false);
   };
 
-  const handleFollowUpTranscript = (newTranscript: string) => {
-    const fullTranscript = followUpTranscript ? `${followUpTranscript}\n\n${newTranscript}` : newTranscript;
-    setFollowUpTranscript(fullTranscript);
-    processTranscript(fullTranscript, true);
+  // Handle follow-up answer changes
+  const handleFollowUpAnswer = (questionId: string, value: string | string[]) => {
+    setFollowUpAnswers(prev => ({
+      ...prev,
+      [questionId]: {
+        ...prev[questionId],
+        answer: value,
+        skipped: false,
+      },
+    }));
+  };
+
+  const handleSkipQuestion = (questionId: string) => {
+    setFollowUpAnswers(prev => ({
+      ...prev,
+      [questionId]: {
+        ...prev[questionId],
+        skipped: true,
+        answer: prev[questionId].answer,
+      },
+    }));
+  };
+
+  const handleToggleOption = (questionId: string, option: string, isMulti: boolean) => {
+    setFollowUpAnswers(prev => {
+      const current = prev[questionId];
+      if (isMulti) {
+        const currentArr = Array.isArray(current.answer) ? current.answer : [];
+        const newAnswer = currentArr.includes(option)
+          ? currentArr.filter(o => o !== option)
+          : [...currentArr, option];
+        return {
+          ...prev,
+          [questionId]: { ...current, answer: newAnswer, skipped: false },
+        };
+      } else {
+        return {
+          ...prev,
+          [questionId]: { ...current, answer: option, skipped: false },
+        };
+      }
+    });
+  };
+
+  const handleSubmitFollowUps = () => {
+    processTranscript('', true, followUpAnswers);
+  };
+
+  const allQuestionsAnswered = () => {
+    return followUpQuestions.every(q => {
+      const answer = followUpAnswers[q.id];
+      if (!answer) return false;
+      if (answer.skipped) return true;
+      if (q.type === 'multi') {
+        return Array.isArray(answer.answer) && answer.answer.length > 0;
+      }
+      return answer.answer && (typeof answer.answer === 'string' ? answer.answer.trim() : true);
+    });
   };
 
   const handleContinue = () => {
@@ -677,51 +999,109 @@ const OnboardingPage: React.FC = () => {
         )}
 
         {viewState === 'processing' && (
-          <ProcessingSection>
-            <Spinner />
-            <ProcessingText>Processing your answers...</ProcessingText>
-          </ProcessingSection>
+          <>
+            <HeroSection>
+              <BlockImage src="/app-block.png" alt="Your Block" />
+              {blockName && <Title>{blockName}</Title>}
+              <Subtitle>Processing your answers...</Subtitle>
+            </HeroSection>
+            <ProcessingSection>
+              <Spinner />
+              <ProcessingText>Analyzing and building your blueprint...</ProcessingText>
+            </ProcessingSection>
+          </>
         )}
 
         {viewState === 'followup' && (
           <>
             <HeroSection>
               <BlockImage src="/app-block.png" alt="Your Block" />
-              <Title>A Few More Details</Title>
+              {blockName && <Title>{blockName}</Title>}
               <Subtitle>
-                Based on your answers, we have a few follow-up questions to clarify the direction.
+                A few more details to finalize your block requirements.
               </Subtitle>
             </HeroSection>
 
             <QuestionsCard>
-              {followUpQuestions.map((fq, idx) => (
-                <FollowUpCard key={idx} $index={idx}>
-                  <FollowUpQuestion>{fq.question}</FollowUpQuestion>
-                  <FollowUpContext>{fq.context}</FollowUpContext>
-                  {fq.options && fq.options.length > 0 && (
-                    <OptionsRow>
-                      {fq.options.map((opt, oidx) => (
-                        <OptionChip key={oidx}>{opt}</OptionChip>
-                      ))}
-                    </OptionsRow>
-                  )}
-                </FollowUpCard>
-              ))}
+              {followUpQuestions.map((fq, idx) => {
+                const answer = followUpAnswers[fq.id];
+                const isSkipped = answer?.skipped;
+                
+                return (
+                  <FollowUpCard key={fq.id} $index={idx}>
+                    <FollowUpQuestion>
+                      {idx + 1}. {fq.question}
+                      {isSkipped && <SkippedBadge>Skipped</SkippedBadge>}
+                    </FollowUpQuestion>
+                    <FollowUpContext>{fq.context}</FollowUpContext>
+                    
+                    {!isSkipped && fq.type === 'open' && (
+                      <OpenTextInput
+                        value={typeof answer?.answer === 'string' ? answer.answer : ''}
+                        onChange={(e) => handleFollowUpAnswer(fq.id, e.target.value)}
+                        placeholder="Type your answer..."
+                      />
+                    )}
+                    
+                    {!isSkipped && (fq.type === 'single' || fq.type === 'multi') && fq.options && (
+                      <OptionsRow>
+                        {fq.options.map((opt, oidx) => {
+                          const isSelected = fq.type === 'multi'
+                            ? Array.isArray(answer?.answer) && answer.answer.includes(opt)
+                            : answer?.answer === opt;
+                          return (
+                            <OptionChip
+                              key={oidx}
+                              type="button"
+                              $selected={isSelected}
+                              onClick={() => handleToggleOption(fq.id, opt, fq.type === 'multi')}
+                            >
+                              {opt}
+                            </OptionChip>
+                          );
+                        })}
+                      </OptionsRow>
+                    )}
+                    
+                    {fq.type === 'multi' && !isSkipped && (
+                      <FollowUpContext style={{ marginTop: '0.25rem', fontSize: '0.7rem' }}>
+                        Select all that apply
+                      </FollowUpContext>
+                    )}
+                    
+                    <QuestionActions>
+                      {!isSkipped ? (
+                        <SkipButton type="button" onClick={() => handleSkipQuestion(fq.id)}>
+                          Skip this question
+                        </SkipButton>
+                      ) : (
+                        <SkipButton type="button" onClick={() => setFollowUpAnswers(prev => ({
+                          ...prev,
+                          [fq.id]: { ...prev[fq.id], skipped: false }
+                        }))}>
+                          Answer this question
+                        </SkipButton>
+                      )}
+                    </QuestionActions>
+                  </FollowUpCard>
+                );
+              })}
 
-              <Divider />
-
-              <RecordSection>
-                <RecordTitle>Continue</RecordTitle>
-                <RecordSubtitle>
-                  Answer these follow-ups to refine your block.
-                </RecordSubtitle>
-                <VoiceTranscriber
-                  onTranscriptReady={handleFollowUpTranscript}
-                  placeholder="Your spoken answers will appear here..."
-                  variant="circular"
-                />
+              <SubmitSection>
+                <ProgressText>
+                  {Object.values(followUpAnswers).filter(a => 
+                    a.skipped || (Array.isArray(a.answer) ? a.answer.length > 0 : a.answer)
+                  ).length} of {followUpQuestions.length} questions answered
+                </ProgressText>
+                <Button 
+                  $primary 
+                  onClick={handleSubmitFollowUps}
+                  disabled={!allQuestionsAnswered()}
+                >
+                  Generate Requirements →
+                </Button>
                 {error && <ErrorMessage>{error}</ErrorMessage>}
-              </RecordSection>
+              </SubmitSection>
             </QuestionsCard>
           </>
         )}
@@ -729,12 +1109,14 @@ const OnboardingPage: React.FC = () => {
         {viewState === 'document' && summary && (
           <>
             <HeroSection>
-              <Title>Your Block Blueprint</Title>
+              <BlockImage src="/app-block.png" alt="Your Block" />
+              {blockName && <Title>{blockName}</Title>}
               <Subtitle>
-                Review what we captured, then create your block.
+                {prd ? 'Your product requirements are ready.' : 'Review what we captured, then create your block.'}
               </Subtitle>
             </HeroSection>
 
+            {/* Summary Card */}
             <DocumentCard>
               <DocumentHeader>
                 <DocumentTitle>{summary.name}</DocumentTitle>
@@ -760,45 +1142,108 @@ const OnboardingPage: React.FC = () => {
                     ))}
                   </FeatureList>
                 </Section>
-
-                <Divider />
-
-                <Section>
-                  <SectionTitle>Your Answers</SectionTitle>
-                  {processedAnswers.map((answer, idx) => (
-                    <AnswerCard key={idx}>
-                      <AnswerQuestion>{answer.question}</AnswerQuestion>
-                      <AnswerText>{answer.answer}</AnswerText>
-                      {answer.keyPoints && answer.keyPoints.length > 0 && (
-                        <KeyPoints>
-                          {answer.keyPoints.map((point, pidx) => (
-                            <KeyPoint key={pidx}>{point}</KeyPoint>
-                          ))}
-                        </KeyPoints>
-                      )}
-                    </AnswerCard>
-                  ))}
-                </Section>
-
-                <Section>
-                  <SectionTitle>Next Steps</SectionTitle>
-                  <NextStepsList>
-                    {summary.nextSteps.map((step, idx) => (
-                      <NextStepItem key={idx}>{step}</NextStepItem>
-                    ))}
-                  </NextStepsList>
-                </Section>
-
-                <ActionsRow>
-                  <Button onClick={handleReRecord}>
-                    Re-record
-                  </Button>
-                  <Button $primary onClick={handleContinue}>
-                    Create Block →
-                  </Button>
-                </ActionsRow>
               </DocumentBody>
             </DocumentCard>
+
+            {/* PRD Card - shown after follow-ups */}
+            {prd && (
+              <PRDCard>
+                <PRDHeader>
+                  <PRDTitle>{prd.title}</PRDTitle>
+                  <PRDMeta>Version {prd.version} • {prd.createdAt}</PRDMeta>
+                </PRDHeader>
+
+                <PRDBody>
+                  <PRDSection>
+                    <PRDSectionTitle>Overview</PRDSectionTitle>
+                    <SectionContent style={{ marginBottom: '0.5rem' }}>
+                      <strong>Problem:</strong> {prd.overview.problemStatement}
+                    </SectionContent>
+                    <SectionContent>{prd.overview.description}</SectionContent>
+                  </PRDSection>
+
+                  <PRDSection>
+                    <PRDSectionTitle>Target Audience</PRDSectionTitle>
+                    <SectionContent style={{ marginBottom: '0.5rem' }}>
+                      <strong>Primary:</strong> {prd.targetAudience.primary}
+                    </SectionContent>
+                    <KeyPoints style={{ marginBottom: '0.5rem' }}>
+                      {prd.targetAudience.demographics.map((d, i) => (
+                        <KeyPoint key={i}>{d}</KeyPoint>
+                      ))}
+                    </KeyPoints>
+                    <SectionContent style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      <strong>Pain Points:</strong> {prd.targetAudience.painPoints.join(' • ')}
+                    </SectionContent>
+                  </PRDSection>
+
+                  <PRDSection>
+                    <PRDSectionTitle>Features</PRDSectionTitle>
+                    {prd.features.core.map((feature, idx) => (
+                      <FeatureRow key={idx}>
+                        <div>
+                          <FeatureName>{feature.name}</FeatureName>
+                          <FeatureDesc>{feature.description}</FeatureDesc>
+                        </div>
+                        <PriorityBadge $priority={feature.priority}>
+                          {feature.priority}
+                        </PriorityBadge>
+                      </FeatureRow>
+                    ))}
+                    {prd.features.future.length > 0 && (
+                      <SectionContent style={{ marginTop: '0.75rem', fontSize: '0.85rem' }}>
+                        <strong>Future:</strong> {prd.features.future.join(' • ')}
+                      </SectionContent>
+                    )}
+                  </PRDSection>
+
+                  <PRDSection>
+                    <PRDSectionTitle>Technical Requirements</PRDSectionTitle>
+                    <FeatureList>
+                      {prd.technicalRequirements.map((req, idx) => (
+                        <FeatureItem key={idx}>{req}</FeatureItem>
+                      ))}
+                    </FeatureList>
+                  </PRDSection>
+
+                  <PRDSection>
+                    <PRDSectionTitle>Success Metrics</PRDSectionTitle>
+                    <FeatureList>
+                      {prd.successMetrics.map((metric, idx) => (
+                        <FeatureItem key={idx}>{metric}</FeatureItem>
+                      ))}
+                    </FeatureList>
+                  </PRDSection>
+
+                  <PRDSection>
+                    <PRDSectionTitle>Timeline</PRDSectionTitle>
+                    {prd.timeline.map((item, idx) => (
+                      <TimelineItem key={idx}>
+                        <TimelinePhase>{item.phase}</TimelinePhase>
+                        <TimelineDesc>{item.description}</TimelineDesc>
+                      </TimelineItem>
+                    ))}
+                  </PRDSection>
+
+                  <PRDSection>
+                    <PRDSectionTitle>Risks & Challenges</PRDSectionTitle>
+                    {prd.risks.map((risk, idx) => (
+                      <RiskItem key={idx}>{risk}</RiskItem>
+                    ))}
+                  </PRDSection>
+                </PRDBody>
+              </PRDCard>
+            )}
+
+            {/* Actions */}
+            <ActionsRow style={{ marginTop: '1.5rem' }}>
+              <Button onClick={handleReRecord}>
+                Start Over
+              </Button>
+              <Button $primary onClick={handleContinue}>
+                Create Block →
+              </Button>
+            </ActionsRow>
           </>
         )}
       </Main>

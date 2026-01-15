@@ -21,9 +21,36 @@ interface BlockSummary {
 }
 
 interface FollowUpQuestion {
+  id: string;
   question: string;
   context: string;
+  type: 'single' | 'multi' | 'open';
   options?: string[];
+}
+
+interface ProductRequirementsDocument {
+  title: string;
+  version: string;
+  createdAt: string;
+  overview: {
+    name: string;
+    tagline: string;
+    description: string;
+    problemStatement: string;
+  };
+  targetAudience: {
+    primary: string;
+    demographics: string[];
+    painPoints: string[];
+  };
+  features: {
+    core: { name: string; description: string; priority: 'must-have' | 'should-have' | 'nice-to-have' }[];
+    future: string[];
+  };
+  technicalRequirements: string[];
+  successMetrics: string[];
+  timeline: { phase: string; description: string }[];
+  risks: string[];
 }
 
 interface ProcessAnswersResponse {
@@ -31,6 +58,7 @@ interface ProcessAnswersResponse {
   answers?: ProcessedAnswer[];
   summary?: BlockSummary;
   followUpQuestions?: FollowUpQuestion[];
+  prd?: ProductRequirementsDocument;
   error?: string;
 }
 
@@ -55,42 +83,62 @@ export default async function handler(
   let userPrompt: string;
 
   if (isFollowUp && previousAnswers && previousSummary) {
-    // Follow-up processing - refine the summary with new details
-    systemPrompt = `You are helping someone build a "${blockType}" block called "${blockName || 'their block'}" for Renaissance City, a community platform in Detroit.
+    // Follow-up processing - generate formal PRD from all collected information
+    systemPrompt = `You are a product manager helping someone build a "${blockType}" block called "${blockName || 'their block'}" for Renaissance City, a community platform in Detroit.
 
-They've already answered initial questions, and now they're providing additional clarifying details. Your job is to:
-1. Extract answers from their follow-up responses
-2. Create a refined, more detailed summary that incorporates all the new information
+They've answered initial questions and follow-up clarifying questions. Your job is to:
+1. Record their follow-up answers
+2. Generate a comprehensive Product Requirements Document (PRD) that can be used to build their app block
 
-Be encouraging and constructive.`;
+Be professional and thorough.`;
 
     userPrompt = `Here is their previous summary:
 ${JSON.stringify(previousSummary, null, 2)}
 
-Here are their previous answers:
+Here are their initial answers:
 ${previousAnswers.map((a: ProcessedAnswer) => `Q: ${a.question}\nA: ${a.answer}`).join('\n\n')}
 
-Here are the follow-up questions they were asked:
-${questions.map((q: string, i: number) => `${i + 1}. ${q}`).join('\n')}
-
-Here is their follow-up transcript (spoken answers):
-"""
+Here are the follow-up questions and their responses:
 ${transcript}
-"""
 
-Please analyze this and return a JSON object with:
-1. "answers" - an array of objects for the NEW follow-up questions, each with:
+Please analyze ALL of this and return a JSON object with:
+
+1. "answers" - an array of objects for the follow-up questions, each with:
    - "question": the follow-up question
-   - "answer": their answer extracted from the transcript (or "Not addressed" if they didn't answer)
-   - "keyPoints": array of 1-3 key takeaways from their answer
+   - "answer": their selected answer(s) or text response
+   - "keyPoints": array of 1-2 key implications of their choice
 
-2. "summary" - an UPDATED object that refines and enhances the previous summary with the new details:
-   - "name": the block name (keep "${previousSummary.name}" unless they specifically wanted to change it)
-   - "tagline": refined tagline based on new clarity
-   - "description": more detailed 2-3 sentence description incorporating new information
-   - "targetAudience": refined audience description
-   - "coreFeatures": array of 3-5 core features (updated with more specific details)
-   - "nextSteps": array of 2-3 concrete next steps to build this
+2. "summary" - an UPDATED summary object:
+   - "name": "${previousSummary.name}"
+   - "tagline": refined tagline
+   - "description": comprehensive 2-3 sentence description
+   - "targetAudience": refined audience description  
+   - "coreFeatures": array of 3-5 core features
+   - "nextSteps": array of 2-3 concrete next steps
+
+3. "prd" - a formal Product Requirements Document object:
+   - "title": "Product Requirements: ${previousSummary.name}"
+   - "version": "1.0"
+   - "createdAt": "${new Date().toISOString().split('T')[0]}"
+   - "overview": {
+       "name": the block name,
+       "tagline": catchy tagline,
+       "description": detailed 3-4 sentence description,
+       "problemStatement": what problem this solves (1-2 sentences)
+     }
+   - "targetAudience": {
+       "primary": main user description,
+       "demographics": array of 2-4 demographic characteristics,
+       "painPoints": array of 2-4 pain points this addresses
+     }
+   - "features": {
+       "core": array of 3-5 objects with "name", "description", and "priority" (must-have/should-have/nice-to-have),
+       "future": array of 2-3 future feature ideas
+     }
+   - "technicalRequirements": array of 2-4 technical needs
+   - "successMetrics": array of 3-4 measurable success criteria
+   - "timeline": array of 2-3 phases with "phase" name and "description"
+   - "risks": array of 2-3 potential risks or challenges
 
 Return ONLY valid JSON, no markdown or explanation.`;
 
@@ -126,10 +174,17 @@ Please analyze this and return a JSON object with:
    - "coreFeatures": array of 3-5 core features or capabilities
    - "nextSteps": array of 2-3 recommended next steps to build this
 
-3. "followUpQuestions" - an array of 3-5 follow-up questions to clarify direction, each with:
+3. "followUpQuestions" - an array of 4-6 follow-up questions to clarify direction, each with:
+   - "id": a unique identifier like "q1", "q2", etc.
    - "question": the clarifying question (be specific and actionable)
    - "context": brief explanation of why this matters for building their block
-   - "options": optional array of 2-4 suggested answers/directions they could take
+   - "type": one of "single" (pick one), "multi" (pick multiple), or "open" (free text)
+   - "options": array of 2-5 suggested answers (REQUIRED for "single" and "multi" types, omit for "open")
+
+Guidelines for question types:
+- Use "single" for either/or decisions (monetization model, primary focus, etc.)
+- Use "multi" when they might want to combine approaches (features to prioritize, target groups, etc.)  
+- Use "open" sparingly for things that need custom text input (specific names, unique details)
 
 The follow-up questions should:
 - Dig deeper into vague or incomplete answers
@@ -173,6 +228,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
       answers: parsed.answers,
       summary: parsed.summary,
       followUpQuestions: parsed.followUpQuestions,
+      prd: parsed.prd,
     });
 
   } catch (error) {
