@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Head from "next/head";
 import styled, { keyframes } from "styled-components";
 import { useRouter } from "next/router";
@@ -7,6 +7,15 @@ import { useUser } from "@/contexts/UserContext";
 import { Loading } from "@/components/Loading";
 import VoiceTranscriber from "@/components/VoiceTranscriber";
 import { blockTypeQuestions, BlockTypeConfig } from "@/data/template";
+import { 
+  useBlockDraft, 
+  type ProcessedAnswer, 
+  type BlockSummary, 
+  type FollowUpQuestion, 
+  type FollowUpAnswer, 
+  type ProductRequirementsDocument,
+  type DraftStage
+} from "@/hooks/useBlockDraft";
 
 const APP_NAME = "Renaissance City";
 
@@ -681,68 +690,129 @@ const ErrorMessage = styled.div`
   text-align: center;
 `;
 
-interface ProcessedAnswer {
-  question: string;
-  answer: string;
-  keyPoints: string[];
-}
+// Draft Resume Prompt Styles
+const DraftPromptOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+`;
 
-interface BlockSummary {
-  name: string;
-  tagline: string;
-  description: string;
-  targetAudience: string;
-  coreFeatures: string[];
-  nextSteps: string[];
-}
+const DraftPromptCard = styled.div`
+  background: ${({ theme }) => theme.surface};
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+  animation: ${fadeIn} 0.3s ease-out;
+`;
 
-interface FollowUpQuestion {
-  id: string;
-  question: string;
-  context: string;
-  type: 'single' | 'multi' | 'open';
-  options?: string[];
-}
+const DraftPromptHeader = styled.div`
+  background: linear-gradient(135deg, ${({ theme }) => theme.accent}15 0%, ${({ theme }) => theme.accentGold}15 100%);
+  padding: 1.25rem;
+  text-align: center;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+`;
 
-interface FollowUpAnswer {
-  questionId: string;
-  question: string;
-  answer: string | string[];
-  skipped: boolean;
-}
+const DraftPromptIcon = styled.div`
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+`;
 
-interface ProductRequirementsDocument {
-  title: string;
-  version: string;
-  createdAt: string;
-  overview: {
-    name: string;
-    tagline: string;
-    description: string;
-    problemStatement: string;
-  };
-  targetAudience: {
-    primary: string;
-    demographics: string[];
-    painPoints: string[];
-  };
-  features: {
-    core: { name: string; description: string; priority: 'must-have' | 'should-have' | 'nice-to-have' }[];
-    future: string[];
-  };
-  technicalRequirements: string[];
-  successMetrics: string[];
-  timeline: { phase: string; description: string }[];
-  risks: string[];
-}
+const DraftPromptTitle = styled.h3`
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text};
+  margin: 0;
+`;
+
+const DraftPromptBody = styled.div`
+  padding: 1.25rem;
+`;
+
+const DraftPromptText = styled.p`
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  color: ${({ theme }) => theme.textSecondary};
+  margin: 0 0 0.75rem 0;
+  text-align: center;
+  line-height: 1.5;
+`;
+
+const DraftPromptMeta = styled.div`
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.textSecondary};
+  text-align: center;
+  padding: 0.5rem;
+  background: ${({ theme }) => theme.background};
+  border-radius: 8px;
+  margin-bottom: 1rem;
+`;
+
+const DraftPromptActions = styled.div`
+  display: flex;
+  gap: 0.75rem;
+`;
+
+const DraftButton = styled.button<{ $primary?: boolean }>`
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  ${({ $primary, theme }) => $primary ? `
+    background: linear-gradient(135deg, ${theme.accent} 0%, ${theme.accentGold} 150%);
+    border: none;
+    color: white;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px ${theme.accent}44;
+    }
+  ` : `
+    background: transparent;
+    border: 1px solid ${theme.border};
+    color: ${theme.textSecondary};
+    
+    &:hover {
+      border-color: ${theme.text};
+      color: ${theme.text};
+    }
+  `}
+`;
 
 type ViewState = 'questions' | 'processing' | 'followup' | 'document';
+
+// Map local view state to draft stage
+const viewStateToDraftStage = (viewState: ViewState): DraftStage => {
+  switch (viewState) {
+    case 'questions': return 'questions';
+    case 'processing': return 'processing';
+    case 'followup': return 'followup';
+    case 'document': return 'document';
+    default: return 'questions';
+  }
+};
 
 const OnboardingPage: React.FC = () => {
   const router = useRouter();
   const { type, name } = router.query;
   const { user, isLoading: isUserLoading } = useUser();
   
+  // Use shared draft hook
+  const { draft, isLoaded: isDraftLoaded, hasDraft, updateDraft, getDraftProgress } = useBlockDraft();
+  
+  // Local view state for UI
   const [viewState, setViewState] = useState<ViewState>('questions');
   const [transcript, setTranscript] = useState('');
   const [processedAnswers, setProcessedAnswers] = useState<ProcessedAnswer[]>([]);
@@ -752,9 +822,109 @@ const OnboardingPage: React.FC = () => {
   const [prd, setPrd] = useState<ProductRequirementsDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   
+  // Draft prompt state
+  const [showDraftPrompt, setShowDraftPrompt] = useState(false);
+  const [draftInitialized, setDraftInitialized] = useState(false);
+  
   const blockType = type as string;
   const blockName = name as string;
   const config: BlockTypeConfig | undefined = blockTypeQuestions[blockType];
+
+  // Load draft data when draft is available
+  useEffect(() => {
+    if (isDraftLoaded && !draftInitialized && blockType) {
+      if (draft && draft.blockType === blockType && hasDraft) {
+        // Check if there's meaningful progress in onboarding
+        const hasOnboardingProgress = draft.transcript || 
+          draft.processedAnswers.length > 0 || 
+          draft.summary !== null ||
+          draft.followUpQuestions.length > 0;
+        
+        if (hasOnboardingProgress) {
+          setShowDraftPrompt(true);
+        }
+      }
+      setDraftInitialized(true);
+    }
+  }, [isDraftLoaded, draftInitialized, draft, blockType, hasDraft]);
+
+  // Auto-save draft when state changes
+  const saveDraftData = useCallback(() => {
+    // Don't save if we're at the initial state with no progress
+    if (viewState === 'questions' && !transcript && processedAnswers.length === 0) {
+      return;
+    }
+    
+    updateDraft({
+      currentStage: viewStateToDraftStage(viewState),
+      transcript,
+      processedAnswers,
+      summary,
+      followUpQuestions,
+      followUpAnswers,
+      prd,
+    });
+  }, [viewState, transcript, processedAnswers, summary, followUpQuestions, followUpAnswers, prd, updateDraft]);
+
+  // Auto-save when state changes
+  useEffect(() => {
+    if (draftInitialized && !showDraftPrompt) {
+      saveDraftData();
+    }
+  }, [saveDraftData, draftInitialized, showDraftPrompt]);
+
+  // Resume from draft
+  const resumeDraft = () => {
+    if (draft) {
+      // Map draft stage to view state (skip processing states)
+      let resumeViewState: ViewState = 'questions';
+      const stage = draft.currentStage;
+      
+      if (stage === 'questions') {
+        resumeViewState = 'questions';
+      } else if (stage === 'processing' || stage === 'followup-processing') {
+        // If was processing, go back to previous answerable state
+        resumeViewState = stage === 'processing' ? 'questions' : 'followup';
+      } else if (stage === 'followup') {
+        resumeViewState = 'followup';
+      } else if (stage === 'document') {
+        resumeViewState = 'document';
+      }
+      
+      setViewState(resumeViewState);
+      setTranscript(draft.transcript);
+      setProcessedAnswers(draft.processedAnswers);
+      setSummary(draft.summary);
+      setFollowUpQuestions(draft.followUpQuestions);
+      setFollowUpAnswers(draft.followUpAnswers);
+      setPrd(draft.prd);
+    }
+    setShowDraftPrompt(false);
+  };
+
+  // Start fresh
+  const startFresh = () => {
+    // Reset local state
+    setViewState('questions');
+    setTranscript('');
+    setProcessedAnswers([]);
+    setSummary(null);
+    setFollowUpQuestions([]);
+    setFollowUpAnswers({});
+    setPrd(null);
+    setShowDraftPrompt(false);
+    
+    // Reset draft to just name and type
+    updateDraft({
+      currentStage: 'questions',
+      transcript: '',
+      processedAnswers: [],
+      summary: null,
+      followUpQuestions: [],
+      followUpAnswers: {},
+      prd: null,
+    });
+  };
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -768,7 +938,7 @@ const OnboardingPage: React.FC = () => {
     }
   }, [type, router]);
 
-  if (isUserLoading || !config) {
+  if (isUserLoading || !config || !isDraftLoaded) {
     return <Loading text="Loading..." />;
   }
 
@@ -920,24 +1090,35 @@ const OnboardingPage: React.FC = () => {
   };
 
   const handleContinue = () => {
-    const params = new URLSearchParams();
-    if (summary?.name) params.set('name', summary.name);
-    params.set('type', blockType);
-    if (summary) {
-      params.set('summary', JSON.stringify(summary));
-    }
-    if (processedAnswers.length > 0) {
-      params.set('answers', JSON.stringify(processedAnswers));
-    }
+    // Update draft to the details stage before navigating
+    updateDraft({
+      currentStage: 'details',
+      // PRD and other data already saved
+    });
     
-    router.push(`/app-blocks/new?${params.toString()}`);
+    router.push('/app-blocks/new');
   };
 
   const handleReRecord = () => {
+    // Reset local state
     setTranscript('');
     setProcessedAnswers([]);
     setSummary(null);
+    setFollowUpQuestions([]);
+    setFollowUpAnswers({});
+    setPrd(null);
     setViewState('questions');
+    
+    // Reset draft onboarding data
+    updateDraft({
+      currentStage: 'questions',
+      transcript: '',
+      processedAnswers: [],
+      summary: null,
+      followUpQuestions: [],
+      followUpAnswers: {},
+      prd: null,
+    });
   };
 
   return (
@@ -958,6 +1139,37 @@ const OnboardingPage: React.FC = () => {
           {config.name}
         </BlockTypeLabel>
       </Header>
+
+      {/* Draft Resume Prompt */}
+      {showDraftPrompt && draft && (
+        <DraftPromptOverlay>
+          <DraftPromptCard>
+            <DraftPromptHeader>
+              <DraftPromptIcon>📝</DraftPromptIcon>
+              <DraftPromptTitle>Continue Your Draft?</DraftPromptTitle>
+            </DraftPromptHeader>
+            <DraftPromptBody>
+              <DraftPromptText>
+                You have an unfinished draft for this block. Would you like to continue where you left off?
+              </DraftPromptText>
+              <DraftPromptMeta>
+                {draft.blockName && <><strong>&ldquo;{draft.blockName}&rdquo;</strong><br /></>}
+                {getDraftProgress()?.description || 'In progress'}
+                <br />
+                Last saved: {new Date(draft.lastUpdated).toLocaleDateString()} at {new Date(draft.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </DraftPromptMeta>
+              <DraftPromptActions>
+                <DraftButton onClick={startFresh}>
+                  Start Fresh
+                </DraftButton>
+                <DraftButton $primary onClick={resumeDraft}>
+                  Continue →
+                </DraftButton>
+              </DraftPromptActions>
+            </DraftPromptBody>
+          </DraftPromptCard>
+        </DraftPromptOverlay>
+      )}
 
       <Main>
         {viewState === 'questions' && (

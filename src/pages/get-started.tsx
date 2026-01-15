@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
 import { useAppBlock } from "@/contexts/AppBlockContext";
 import { Loading } from "@/components/Loading";
+import { useBlockDraft } from "@/hooks/useBlockDraft";
 
 const APP_NAME = "Renaissance City";
 
@@ -326,13 +327,117 @@ const BlockTypeDesc = styled.span`
   line-height: 1.4;
 `;
 
+// Draft Resume Prompt Styles
+const DraftPromptOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+`;
+
+const DraftPromptCard = styled.div`
+  background: ${({ theme }) => theme.surface};
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+  animation: ${fadeIn} 0.3s ease-out;
+`;
+
+const DraftPromptHeader = styled.div`
+  background: linear-gradient(135deg, ${({ theme }) => theme.accent}15 0%, ${({ theme }) => theme.accentGold}15 100%);
+  padding: 1.25rem;
+  text-align: center;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+`;
+
+const DraftPromptIcon = styled.div`
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+`;
+
+const DraftPromptTitle = styled.h3`
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text};
+  margin: 0;
+`;
+
+const DraftPromptBody = styled.div`
+  padding: 1.25rem;
+`;
+
+const DraftPromptText = styled.p`
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  color: ${({ theme }) => theme.textSecondary};
+  margin: 0 0 0.75rem 0;
+  text-align: center;
+  line-height: 1.5;
+`;
+
+const DraftPromptMeta = styled.div`
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.textSecondary};
+  text-align: center;
+  padding: 0.5rem;
+  background: ${({ theme }) => theme.background};
+  border-radius: 8px;
+  margin-bottom: 1rem;
+`;
+
+const DraftPromptActions = styled.div`
+  display: flex;
+  gap: 0.75rem;
+`;
+
+const DraftButton = styled.button<{ $primary?: boolean }>`
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  ${({ $primary, theme }) => $primary ? `
+    background: linear-gradient(135deg, ${theme.accent} 0%, ${theme.accentGold} 150%);
+    border: none;
+    color: white;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px ${theme.accent}44;
+    }
+  ` : `
+    background: transparent;
+    border: 1px solid ${theme.border};
+    color: ${theme.textSecondary};
+    
+    &:hover {
+      border-color: ${theme.text};
+      color: ${theme.text};
+    }
+  `}
+`;
+
 const GetStartedPage: React.FC = () => {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useUser();
   const { appBlocks, isLoading: isBlocksLoading, fetchAppBlocks } = useAppBlock();
+  const { draft, isLoaded: isDraftLoaded, hasDraft, updateDraft, startNewDraft, clearDraft, getDraftProgress, getResumeRoute } = useBlockDraft();
+  
   const [imageError, setImageError] = useState(false);
   const [blockName, setBlockName] = useState('');
   const [isBlockClaimed, setIsBlockClaimed] = useState(false);
+  const [showDraftPrompt, setShowDraftPrompt] = useState(false);
 
   // Redirect to auth if not authenticated
   useEffect(() => {
@@ -355,7 +460,64 @@ const GetStartedPage: React.FC = () => {
     }
   }, [isBlocksLoading, appBlocks, router]);
 
-  if (isUserLoading || isBlocksLoading) {
+  // Check for existing draft and show prompt
+  useEffect(() => {
+    if (isDraftLoaded && hasDraft && draft) {
+      // Only show prompt if draft has meaningful progress beyond naming
+      if (draft.currentStage !== 'naming' || draft.blockName) {
+        setShowDraftPrompt(true);
+        // Pre-fill block name if we have it
+        if (draft.blockName) {
+          setBlockName(draft.blockName);
+        }
+        if (draft.blockType) {
+          setIsBlockClaimed(true);
+        }
+      }
+    }
+  }, [isDraftLoaded, hasDraft, draft]);
+
+  // Handle resuming draft
+  const handleResumeDraft = () => {
+    setShowDraftPrompt(false);
+    const resumeRoute = getResumeRoute();
+    router.push(resumeRoute);
+  };
+
+  // Handle starting fresh
+  const handleStartFresh = () => {
+    clearDraft();
+    startNewDraft();
+    setBlockName('');
+    setIsBlockClaimed(false);
+    setShowDraftPrompt(false);
+  };
+
+  // Handle name input change
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setBlockName(newName);
+  };
+
+  // Handle continuing to block type selection
+  const handleContinueToTypeSelection = () => {
+    setIsBlockClaimed(true);
+    updateDraft({
+      blockName,
+      currentStage: 'type-selection',
+    });
+  };
+
+  // Handle selecting block type
+  const handleSelectBlockType = (type: string) => {
+    updateDraft({
+      blockType: type,
+      currentStage: 'questions',
+    });
+    router.push(`/onboarding/${type}?name=${encodeURIComponent(blockName)}`);
+  };
+
+  if (isUserLoading || isBlocksLoading || !isDraftLoaded) {
     return <Loading text="Loading..." />;
   }
 
@@ -371,6 +533,8 @@ const GetStartedPage: React.FC = () => {
     .toUpperCase()
     .slice(0, 2);
 
+  const draftProgress = getDraftProgress();
+
   return (
     <Container>
       <Head>
@@ -379,6 +543,38 @@ const GetStartedPage: React.FC = () => {
         <link rel="icon" href="/favicon.ico" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
+
+      {/* Draft Resume Prompt */}
+      {showDraftPrompt && draft && draftProgress && (
+        <DraftPromptOverlay>
+          <DraftPromptCard>
+            <DraftPromptHeader>
+              <DraftPromptIcon>📝</DraftPromptIcon>
+              <DraftPromptTitle>Continue Your Draft?</DraftPromptTitle>
+            </DraftPromptHeader>
+            <DraftPromptBody>
+              <DraftPromptText>
+                You have an unfinished block draft. Would you like to continue where you left off?
+              </DraftPromptText>
+              <DraftPromptMeta>
+                {draft.blockName && <strong>&ldquo;{draft.blockName}&rdquo;</strong>}
+                {draft.blockName && <br />}
+                {draftProgress.stage}: {draftProgress.description}
+                <br />
+                Last saved: {new Date(draft.lastUpdated).toLocaleDateString()} at {new Date(draft.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </DraftPromptMeta>
+              <DraftPromptActions>
+                <DraftButton onClick={handleStartFresh}>
+                  Start Fresh
+                </DraftButton>
+                <DraftButton $primary onClick={handleResumeDraft}>
+                  Continue →
+                </DraftButton>
+              </DraftPromptActions>
+            </DraftPromptBody>
+          </DraftPromptCard>
+        </DraftPromptOverlay>
+      )}
 
       <Main>
         {!isBlockClaimed ? (
@@ -418,16 +614,14 @@ const GetStartedPage: React.FC = () => {
                   id="blockName"
                   type="text"
                   value={blockName}
-                  onChange={(e) => setBlockName(e.target.value)}
+                  onChange={handleNameChange}
                   placeholder="Enter block name..."
                   maxLength={40}
                   autoFocus
                 />
                 <ContinueButton 
                   disabled={!blockName.trim()}
-                  onClick={() => {
-                    setIsBlockClaimed(true);
-                  }}
+                  onClick={handleContinueToTypeSelection}
                 >
                   Continue →
                 </ContinueButton>
@@ -447,37 +641,37 @@ const GetStartedPage: React.FC = () => {
               </BlockText>
               
               <BlockTypeGrid>
-                <BlockTypeCard $index={0} onClick={() => router.push(`/onboarding/creator?name=${encodeURIComponent(blockName)}`)}>
+                <BlockTypeCard $index={0} onClick={() => handleSelectBlockType('creator')}>
                   <BlockTypeIcon>🎨</BlockTypeIcon>
                   <BlockTypeName>Creator Block</BlockTypeName>
                   <BlockTypeDesc>Art, music, writing, culture, expression</BlockTypeDesc>
                 </BlockTypeCard>
                 
-                <BlockTypeCard $index={1} onClick={() => router.push(`/onboarding/community?name=${encodeURIComponent(blockName)}`)}>
+                <BlockTypeCard $index={1} onClick={() => handleSelectBlockType('community')}>
                   <BlockTypeIcon>🧠</BlockTypeIcon>
                   <BlockTypeName>Community Block</BlockTypeName>
                   <BlockTypeDesc>Events, meetups, education, organizing</BlockTypeDesc>
                 </BlockTypeCard>
                 
-                <BlockTypeCard $index={2} onClick={() => router.push(`/onboarding/project?name=${encodeURIComponent(blockName)}`)}>
+                <BlockTypeCard $index={2} onClick={() => handleSelectBlockType('project')}>
                   <BlockTypeIcon>🏗</BlockTypeIcon>
                   <BlockTypeName>Project / Product Block</BlockTypeName>
                   <BlockTypeDesc>Apps, tools, experiments, startups</BlockTypeDesc>
                 </BlockTypeCard>
                 
-                <BlockTypeCard $index={3} onClick={() => router.push(`/onboarding/business?name=${encodeURIComponent(blockName)}`)}>
+                <BlockTypeCard $index={3} onClick={() => handleSelectBlockType('business')}>
                   <BlockTypeIcon>🏪</BlockTypeIcon>
                   <BlockTypeName>Business Block</BlockTypeName>
                   <BlockTypeDesc>Local services, venues, shops</BlockTypeDesc>
                 </BlockTypeCard>
                 
-                <BlockTypeCard $index={4} onClick={() => router.push(`/onboarding/game?name=${encodeURIComponent(blockName)}`)}>
+                <BlockTypeCard $index={4} onClick={() => handleSelectBlockType('game')}>
                   <BlockTypeIcon>🎮</BlockTypeIcon>
                   <BlockTypeName>Game / Interactive Block</BlockTypeName>
                   <BlockTypeDesc>Experiences, quests, play</BlockTypeDesc>
                 </BlockTypeCard>
                 
-                <BlockTypeCard $index={5} onClick={() => router.push(`/onboarding/unsure?name=${encodeURIComponent(blockName)}`)}>
+                <BlockTypeCard $index={5} onClick={() => handleSelectBlockType('unsure')}>
                   <BlockTypeIcon>🌱</BlockTypeIcon>
                   <BlockTypeName>Not Sure Yet</BlockTypeName>
                   <BlockTypeDesc>Help me shape it</BlockTypeDesc>

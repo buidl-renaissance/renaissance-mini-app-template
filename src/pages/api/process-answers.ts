@@ -149,10 +149,11 @@ Return ONLY valid JSON, no markdown or explanation.`;
 Your job is to:
 1. Extract and organize the answers from their spoken transcript
 2. Create a clear, structured document that captures their vision
+3. Generate strategic follow-up questions that gather NEW information to shape the block's direction
 
 Be encouraging and constructive. If answers are vague or missing, note what could be clarified but don't be critical.`;
 
-    userPrompt = `Here are the questions they were asked:
+    userPrompt = `Here are the ORIGINAL questions they were asked:
 ${questions.map((q: string, i: number) => `${i + 1}. ${q}`).join('\n')}
 
 Here is their transcript (spoken answers):
@@ -181,16 +182,29 @@ Please analyze this and return a JSON object with:
    - "type": one of "single" (pick one), "multi" (pick multiple), or "open" (free text)
    - "options": array of 2-5 suggested answers (REQUIRED for "single" and "multi" types, omit for "open")
 
-Guidelines for question types:
-- Use "single" for either/or decisions (monetization model, primary focus, etc.)
-- Use "multi" when they might want to combine approaches (features to prioritize, target groups, etc.)  
-- Use "open" sparingly for things that need custom text input (specific names, unique details)
+CRITICAL GUIDELINES FOR FOLLOW-UP QUESTIONS:
 
-The follow-up questions should:
-- Dig deeper into vague or incomplete answers
-- Help clarify specific decisions needed for a ${blockType}
-- Focus on practical details needed to actually build this (monetization, tech choices, launch strategy, etc.)
-- Be tailored to what they shared — don't ask about things they already answered clearly
+Question Type Distribution (MUST follow):
+- At least 2-3 questions MUST be "single" type (pick one from options) - use for key decisions like monetization model, primary platform, launch approach, user authentication method, etc.
+- At least 1-2 questions MUST be "multi" type (pick multiple) - use for features to prioritize, target demographics, integration needs, etc.
+- Maximum 1 question can be "open" type - only use when truly custom input is needed (specific pricing, unique workflow details, etc.)
+
+DO NOT generate follow-up questions that:
+- Repeat or closely resemble the original questions listed above
+- Ask for information the user already clearly provided in their answers
+- Are too similar to each other (each question should explore a DISTINCT aspect)
+- Don't contribute meaningful new information for building the block
+
+DO generate follow-up questions that:
+- Explore GAPS in their answers (things they didn't address or were vague about)
+- Force specific decisions needed to actually build this ${blockType} (tech stack, monetization, launch strategy, user management, etc.)
+- Help prioritize between competing directions they mentioned
+- Clarify scale/scope decisions (MVP vs full product, local vs regional, etc.)
+
+Good examples of decision-forcing questions:
+- "How should users pay?" with options ["Free", "One-time purchase", "Subscription", "Freemium", "Pay what you want"]
+- "What's your launch priority?" with options ["Get it live fast (MVP)", "Make it polished first", "Beta test with small group"]
+- "Which features are must-haves for launch?" (multi) with specific feature options based on what they described
 
 Return ONLY valid JSON, no markdown or explanation.`;
   }
