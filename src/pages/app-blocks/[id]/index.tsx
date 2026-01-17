@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useUser } from '@/contexts/UserContext';
 import { useAppBlock, AppBlockWithInstallations } from '@/contexts/AppBlockContext';
 import { Loading } from '@/components/Loading';
-import { ConnectorHealth, BlockInstallations, IconEditModal } from '@/components/app-blocks';
+import { BlockInstallations, IconEditModal } from '@/components/app-blocks';
 
 const fadeIn = keyframes`
   from {
@@ -425,6 +425,96 @@ const OnboardingButton = styled(Link)`
   }
 `;
 
+const DistrictAppsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const DistrictAppCard = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: ${({ theme }) => theme.backgroundAlt};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: ${({ theme }) => theme.accent}40;
+    background: ${({ theme }) => theme.accent}08;
+  }
+`;
+
+const DistrictIcon = styled.div<{ $imageUrl: string }>`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: url(${({ $imageUrl }) => $imageUrl}) center/cover no-repeat;
+  border: 2px solid ${({ theme }) => theme.accent};
+  flex-shrink: 0;
+`;
+
+const DistrictInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const DistrictName = styled.h4`
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text};
+  margin: 0 0 0.25rem 0;
+`;
+
+const DistrictDescription = styled.p`
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.85rem;
+  color: ${({ theme }) => theme.textSecondary};
+  margin: 0;
+  line-height: 1.4;
+`;
+
+const ConnectButton = styled(Link)`
+  padding: 0.5rem 1rem;
+  background: ${({ theme }) => theme.accent};
+  border: none;
+  border-radius: 8px;
+  color: white;
+  text-decoration: none;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  
+  &:hover {
+    background: ${({ theme }) => theme.accent}dd;
+    transform: translateY(-1px);
+  }
+`;
+
+const DISTRICT_APPS = [
+  {
+    id: 'events',
+    name: 'Renaissance Events',
+    description: 'City-wide events and gatherings',
+    imageUrl: '/renaissance-events.png',
+  },
+  {
+    id: 'people',
+    name: 'Renaissance People',
+    description: 'Connections and social graph',
+    imageUrl: '/renaissance-people.png',
+  },
+];
+
 const AppBlockDetailPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
@@ -432,7 +522,6 @@ const AppBlockDetailPage: React.FC = () => {
   const { 
     fetchAppBlock, 
     deleteAppBlock, 
-    revokeConnector,
     fetchConnectors,
   } = useAppBlock();
   
@@ -509,15 +598,6 @@ const AppBlockDetailPage: React.FC = () => {
     } else {
       setIsDeleting(false);
       setShowDeleteModal(false);
-    }
-  };
-
-  const handleRevoke = async (installationId: string) => {
-    await revokeConnector(installationId);
-    // Refresh the app block data
-    if (id && typeof id === 'string') {
-      const updated = await fetchAppBlock(id);
-      setAppBlock(updated);
     }
   };
 
@@ -615,6 +695,23 @@ const AppBlockDetailPage: React.FC = () => {
 
         <Section>
           <SectionHeader>
+            <SectionTitle>District Apps</SectionTitle>
+          </SectionHeader>
+          <DistrictAppsGrid>
+            {DISTRICT_APPS.map((district) => (
+              <DistrictAppCard key={district.id}>
+                <DistrictIcon $imageUrl={district.imageUrl} />
+                <DistrictInfo>
+                  <DistrictName>{district.name}</DistrictName>
+                  <DistrictDescription>{district.description}</DistrictDescription>
+                </DistrictInfo>
+              </DistrictAppCard>
+            ))}
+          </DistrictAppsGrid>
+        </Section>
+
+        <Section>
+          <SectionHeader>
             <SectionTitle>Connected App Blocks</SectionTitle>
             <AddButton href="/explore">
               + Browse
@@ -623,19 +720,6 @@ const AppBlockDetailPage: React.FC = () => {
           <BlockInstallations 
             appBlockId={appBlock.id}
             showBrowseLink={false}
-          />
-        </Section>
-
-        <Section>
-          <SectionHeader>
-            <SectionTitle>Connected Districts</SectionTitle>
-            <AddButton href={`/app-blocks/${appBlock.id}/connect/events`}>
-              + Add
-            </AddButton>
-          </SectionHeader>
-          <ConnectorHealth 
-            installations={appBlock.installations}
-            onRevoke={handleRevoke}
           />
         </Section>
 

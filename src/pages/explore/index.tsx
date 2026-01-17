@@ -80,27 +80,6 @@ const Subtitle = styled.p`
   line-height: 1.6;
 `;
 
-const CreateButton = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, ${({ theme }) => theme.accent} 0%, ${({ theme }) => theme.accentGold} 150%);
-  border-radius: 10px;
-  color: white;
-  text-decoration: none;
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 16px ${({ theme }) => theme.accent}30;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px ${({ theme }) => theme.accent}40;
-  }
-`;
-
 const BrowserSection = styled.section`
   animation: ${fadeIn} 0.5s ease-out 0.1s both;
 `;
@@ -128,10 +107,6 @@ export default function ExplorePage() {
                   and extend your own creations with the power of the Renaissance City ecosystem.
                 </Subtitle>
               </div>
-              
-              <CreateButton href="/get-started?new=true">
-                + Create Your Block
-              </CreateButton>
             </TitleRow>
           </Header>
           
